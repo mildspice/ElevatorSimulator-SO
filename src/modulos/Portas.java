@@ -14,11 +14,15 @@ import enums.EstadoPortas;
  * 8170282 </p>
  * <p>
  * 8170283 </p>
+ * 
+ * ISTO VAI SER PARA ALTERAR, NAO FAZ SENTIDO FICAR ASSIM.
+ * 
+ * E AINDA NAO SEI SE DEVERIA FAZER UMA THREAD COM ISTO
  */
-public class Portas {
+public class Portas{
 
-    private EstadoPortas estado;
-
+    private EstadoPortas estado = EstadoPortas.ABERTO;
+    
     /**
      * Abre as portas. (altera o estado atual das portas para "aberto")
      */
