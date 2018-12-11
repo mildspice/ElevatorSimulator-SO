@@ -41,4 +41,23 @@ public class Portas {
     public EstadoPortas getEstado() {
         return this.estado;
     }
+
+    /*
+    * Define os estados da porta
+    *
+    * @param input String de dados referente ao input do utlizador
+     */
+
+    public void acaoPortas(String input){
+        Botoneira botoneira = new Botoneira(input);
+
+         if(botoneira.Outvalue()==0) {
+            if(botoneira.getActionbtn().equals("A")){
+                setAberto();
+            }else if(botoneira.getActionbtn().equals("F")){
+                setFechado();
+            }
+
+         }
+    }
 }

@@ -99,10 +99,15 @@ public class Motor implements Runnable {
         }
     }
 
+
+        //retorna o estado do elevador, isto é, se está Ascendente ou Não (Descendente)
     public boolean isAscendente() {
         return ascendente;
     }
 
+    //Define o modo do Elevador, se True significa que está a ascente, se false significa Descendente
+    //De qualquer maneira, isto pode se alterar. Podemos definir 1 como ascendente, 0 como parado e -1 como descendente.
+    //Dependerá daquilo que considerarmos melhor. Uma vez que o estado deste só importa se estiver em funcionamneto... Penso
     public void setAscendente(boolean ascendente) {
         this.ascendente = ascendente;
     }
