@@ -8,6 +8,9 @@ public class Motor implements Runnable {
     private DirecaoMotor estado;
     protected Main elevador;
     Semaphore semaforoMotor;
+    private int currentfloor;
+    private int floordistance;
+    private boolean ascendente;
 
     /**
      * Construtor para a thread sem pre-introdução da direção.
@@ -81,4 +84,26 @@ public class Motor implements Runnable {
         return this.estado;
     }
 
+    public int getFloordistance(){ return this.floordistance; }
+
+    public void setFloordistance(int currentfloor, String nextfloor){
+        Botoneira botoneira = new Botoneira(nextfloor);
+        if(botoneira.Outvalue()==1) {
+          if(botoneira.getValuebtn()>currentfloor) {
+              this.floordistance = botoneira.getValuebtn()-currentfloor;
+              setAscendente(true);
+          }else if(botoneira.getValuebtn()<currentfloor){
+              this.floordistance= currentfloor-botoneira.getValuebtn();
+              setAscendente(false);
+          }
+        }
+    }
+
+    public boolean isAscendente() {
+        return ascendente;
+    }
+
+    public void setAscendente(boolean ascendente) {
+        this.ascendente = ascendente;
+    }
 }
