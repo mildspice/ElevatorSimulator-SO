@@ -1,13 +1,11 @@
 package modulos;
 
-import enums.DirecaoMotor;
 import java.util.concurrent.Semaphore;
 import tools.MonitorElevador;
 
 public class Motor extends Thread {
 
     private boolean showInterruptedMessage = true;
-    private DirecaoMotor estado;
     protected MonitorElevador monitor;
     protected Semaphore semaforoMotor;
 
@@ -34,20 +32,17 @@ public class Motor extends Thread {
                 this.semaforoMotor.acquire();
                 System.out.println("SemaforoMotor_Permicoes_DepoisAcquire: "
                         + this.semaforoMotor.availablePermits());
-
-                //poe o elevador em andamento (sinaliza)
-                this.monitor.setFlagFuncionamento(true);
-                System.out.println("DirecaoMotor: " + this.getEstado().toString());
+                System.out.println("DirecaoMotor: " + this.monitor.getDirecaoMotor().toString());
 
                 //A função main vai alterar o valor do funcionamento para quebrar este ciclo
                 while (this.monitor.isEmFuncionamento()) {
                     Thread.sleep(500);
-                    switch (this.getEstado()) {
+                    switch (this.monitor.getDirecaoMotor()) {
                         case BAIXO:
-                            System.out.println(this.getEstado().message());
+                            System.out.println(this.monitor.getDirecaoMotor().message());
                             break;
                         case CIMA:
-                            System.out.println(this.getEstado().message());
+                            System.out.println(this.monitor.getDirecaoMotor().message());
                             break;
                         default:
                             //não sabia o que por aqui, até pode nem se por nada.
@@ -64,24 +59,6 @@ public class Motor extends Thread {
                 System.out.println("\t* Motor Interrompido! *\n");
             }
         }
-    }
-
-    /**
-     * Altera a direção do motor para se deslocar para cima ou para baixo.
-     *
-     * @param estado enum constant referente à direção
-     */
-    public void setEstado(DirecaoMotor estado) {
-        this.estado = estado;
-    }
-
-    /**
-     * Retorna o estado direcional do motor.
-     *
-     * @return enum constant sobre o estado atual do motor
-     */
-    public DirecaoMotor getEstado() {
-        return this.estado;
     }
 
     public void setShowInterruptedMessage(boolean flag) {

@@ -3,20 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package tools;
+package modulos;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import modulos.Motor;
+import tools.MonitorElevador;
 
-public class ElevatorRunTime extends Thread {
+public class MainMovimentoElevador extends Thread {
 
     private final int FlOOR_WAIT_TIME_MS = 5000;
+    //número de pisos a deslocar ...
     private int numOfFloors = 0;
     MonitorElevador monitor;
     Motor motor;
 
-    public ElevatorRunTime(MonitorElevador monitor, Motor motor, int num) {
+    public MainMovimentoElevador(MonitorElevador monitor, Motor motor, int num) {
         this.monitor = monitor;
         this.numOfFloors = num;
         this.motor = motor;
@@ -26,9 +27,11 @@ public class ElevatorRunTime extends Thread {
     public void run() {
         try {
             this.monitor.setFloorReachedFlag(false);
+            //para dar tempo para o codigo correr ...
+            Thread.sleep(10);
             //apeteceu-me pôr o nome ...
             Thread.currentThread().setName("[RunningElevator] "
-                    + "Floor: " + this.numOfFloors
+                    + "NumberOfFloorToMove: " + this.numOfFloors
                     + " WaitTimeBetweenFloors: " + this.FlOOR_WAIT_TIME_MS);
 
             //vai alterando o piso atual ...
@@ -37,7 +40,7 @@ public class ElevatorRunTime extends Thread {
             System.out.println("[PISO ATUAL]: " + this.monitor.getPisoAtual());
             for (int i = 0; i < this.numOfFloors; i++) {
                 Thread.sleep(FlOOR_WAIT_TIME_MS);
-                if (this.motor.getEstado().toString().equals("CIMA")) {
+                if (this.monitor.getDirecaoMotor().toString().equals("CIMA")) {
                     this.monitor.setPisoAtual(this.monitor.getPisoAtual() + 1);
                 } else {
                     this.monitor.setPisoAtual(this.monitor.getPisoAtual() - 1);
@@ -46,9 +49,8 @@ public class ElevatorRunTime extends Thread {
             }
 
             this.monitor.setFloorReachedFlag(true);
-            this.monitor.acorda();
         } catch (InterruptedException ex) {
-            Logger.getLogger(ElevatorRunTime.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(MainMovimentoElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }
