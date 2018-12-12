@@ -1,7 +1,6 @@
 package modulos;
 
 import enums.DirecaoMotor;
-import enums.EstadoPortas;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -52,13 +51,13 @@ public class MainControloElevador implements Runnable {
                         = new DirecaoMotor[]{DirecaoMotor.CIMA, DirecaoMotor.BAIXO};
 
                 //define a direcao do movimento do elevador
-                //isto depois é verificado aqui consoante o que é introduzido na botoneira
+                //DEPOIS isto depois é verificado aqui consoante o que é introduzido na botoneira
                 monitor.setDirecaoMotor(direcao[test]);
 
                 System.out.println("Portas: " + monitor.getEstadoPortas().toString());
 
                 //cria a thread relacionada ao tempo de andamento do elevador...
-                //aqui vai ser preciso fazer o calculo para quantos pisos o elevador
+                //DEPOIS aqui vai ser preciso fazer o calculo para quantos pisos o elevador
                 //se vai deslocar ...
                 MainMovimentoElevador workingElevator = new MainMovimentoElevador(this.monitor, this.motor, 3);
                 workingElevator.start();
@@ -109,12 +108,30 @@ public class MainControloElevador implements Runnable {
     }
 
     public static void main(String[] args) {
-        //Isto é só para exemplificar ... é capaz de ser melhor usar mais alguns semaforos
+        /*
+        Este semáforo vai servir para quando fizermos operações de escrever 
+        os logs no ficheiro e assim.
+        Um exemplo: O módulo Main é constutuido por várias classes (diferentes threads).
+          Imaginemos, temos uma thread relacionada ao movimento do elevador
+              (já temos essa thread, "MainMovimentoElevador") e outra que por alguma razão
+              analisa quantas vezes as portas abriram e fecharam.
+          Basicamente, faríamos um método para escrever no ficheiro (provavelmente
+              na classe "MonitorElevador") e no código de cada thread, cada vez que
+              esse método fosse chamado ficaria do tipo:
+                ...
+                exclusaoMutua.acquire();
+                escreverFicheiro();
+                exclusaoMutua.release();
+        Pronto.
+        Isto no fundo serve para evitar que o código se faça simultaneamente.
+         */
+        Semaphore exclusaoMutua = new Semaphore(1);
+        //semaforos relacionados ao funcionamento dos sub-modulos
         Semaphore semaforoMotor = new Semaphore(0);
         Semaphore semaforoPortas = new Semaphore(1);
 
         //sharedobject e threads secundárias
-        MonitorElevador monitor = new MonitorElevador();
+        MonitorElevador monitor = new MonitorElevador(4);
         Portas portas = new Portas(semaforoPortas, monitor);
         portas.setName("[Thread_PortasElevador]");
         //motor extends Thread (e assim já nao é preciso fazer uma instância de 'Thread'

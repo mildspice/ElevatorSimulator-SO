@@ -28,7 +28,7 @@ public class MainMovimentoElevador extends Thread {
         try {
             this.monitor.setFloorReachedFlag(false);
             //para dar tempo para o codigo correr ...
-            Thread.sleep(10);
+            Thread.sleep(5);
             //apeteceu-me pôr o nome ...
             Thread.currentThread().setName("[RunningElevator] "
                     + "NumberOfFloorToMove: " + this.numOfFloors

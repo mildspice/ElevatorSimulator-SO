@@ -4,22 +4,37 @@ import enums.DirecaoMotor;
 import enums.EstadoPortas;
 
 /**
- * Extensão do módulo Main (mais propriamente "MainControloElevador") 
- * que funciona como um "shared object" para facilitar a comunicação 
- * entre as diferentes threads.
+ * Extensão do módulo Main (mais propriamente "MainControloElevador") que
+ * funciona como um "shared object" para facilitar a comunicação entre as
+ * diferentes threads.
  *
  * @author Asus
  */
 public class MonitorElevador {
 
+    //variáveis gerais do funcionamento do elevador
     private boolean flagFloorReached = true;
     private boolean flagFuncionamento = false;
-
-    private final int NUM_PISOS = 4;
+    private final int NUM_PISOS;
     private int pisoAtual = 0;
-
+    
+    //variáveis relacionadas ao estado do motor e das portas
     private DirecaoMotor direcaoMotor;
     private EstadoPortas estadoPortas = EstadoPortas.ABERTO;
+    
+    //variâveis relacionadas ao funcionamento da Botoneira
+    private enum Botoes {
+        A, F, S, K;
+    };
+    private final String[] botoesPisos;
+
+    public MonitorElevador(int numPisos) {
+        this.NUM_PISOS = numPisos;
+        this.botoesPisos = new String[numPisos];
+        for (int i=0; i < this.botoesPisos.length; i++) {
+            this.botoesPisos[i] = "PISO"+i;
+        }
+    }
 
     public synchronized void acorda() {
         this.notify();

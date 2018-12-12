@@ -37,6 +37,8 @@ public class Portas extends Thread {
     public void run() {
         try {
             while (!Thread.interrupted()) {
+                //este semaforo serve para que o ciclo nao esteja a correr constantemente
+                //e evita puxar muito pelo processador ...
                 semaforoPortas.acquire();
                 //depois colocar a validação relacionada ao botao de abrir as portas
                 //na botoneira

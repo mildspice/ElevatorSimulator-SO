@@ -1,15 +1,29 @@
 package modulos;
 
-import java.util.concurrent.Semaphore;
+import java.util.Scanner;
+import tools.MonitorElevador;
 
-public class Botoneira implements Runnable{
-    //não precisa de ser enum ...
-    private enum Botoes{
-        PISO1, PISO2, PISO3, PISO4, A, F, S, K;
-    };
+/**
+ * O problema com a botoneira é o facto de ter que ser possivel fazer inputs
+ * enquanto o elevador está a funcionar, sem o interromper...
+ *
+ * Talvez, podemos fazer uma segunda janela que vai aceitando inputs....
+ * 
+ */
+public class Botoneira extends Thread{
+    
+    protected MonitorElevador monitor;
+    Scanner scanner;
+    
+    public Botoneira(MonitorElevador monitor) {
+        this.monitor = monitor;
+        scanner = new Scanner(System.in);
+    }
     
     @Override
     public void run() {
-        
+        while (!Thread.interrupted()) {
+            
+        }
     }
 }
