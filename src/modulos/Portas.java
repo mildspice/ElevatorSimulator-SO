@@ -1,6 +1,10 @@
 package modulos;
 
 import enums.EstadoPortas;
+import java.util.concurrent.Semaphore;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import tools.MonitorElevador;
 
 /**
  * <b>
@@ -14,31 +18,44 @@ import enums.EstadoPortas;
  * 8170282 </p>
  * <p>
  * 8170283 </p>
+ *
+ * ISTO VAI SER PARA ALTERAR, NAO FAZ SENTIDO FICAR ASSIM.
+ *
+ * E AINDA NAO SEI SE DEVERIA FAZER UMA THREAD COM ISTO
  */
-public class Portas {
+public class Portas extends Thread {
 
-    private EstadoPortas estado;
+    protected MonitorElevador monitor;
+    protected Semaphore semaforoPortas;
 
-    /**
-     * Abre as portas. (altera o estado atual das portas para "aberto")
-     */
-    public void setAberto() {
-        this.estado = EstadoPortas.ABERTO;
+    public Portas(Semaphore semaforo, MonitorElevador monitor) {
+        this.semaforoPortas = semaforo;
+        this.monitor = monitor;
     }
 
-    /**
-     * Fecha as portas. (altera o estado atual das portas para "fechado")
-     */
-    public void setFechado() {
-        this.estado = EstadoPortas.FECHADO;
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                /**
+                 * este semaforo serve para que o ciclo nao esteja a correr
+                 * constantemente ... as portas funcionam só quando é sinalizado
+                 */
+                semaforoPortas.acquire();
+                
+                if (monitor.isFloorReached() && !monitor.isEmFuncionamento()) {
+                    monitor.setEstadoPortas(EstadoPortas.ABERTO);
+
+                } else {
+                    monitor.setEstadoPortas(EstadoPortas.FECHADO);
+                }
+                
+                /*
+                fazer uma janela com os estados da porta também ...
+                */
+            }
+        } catch (InterruptedException ex) {
+        }
     }
 
-    /**
-     * Retorna o estado atual das portas.
-     *
-     * @return enum constant sobre o estado das portas
-     */
-    public EstadoPortas getEstado() {
-        return this.estado;
-    }
 }
