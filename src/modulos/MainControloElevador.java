@@ -54,7 +54,7 @@ public class MainControloElevador implements Runnable {
                 //DEPOIS isto depois é verificado aqui consoante o que é introduzido na botoneira
                 monitor.setDirecaoMotor(direcao[test]);
 
-                System.out.println("Portas: " + monitor.getEstadoPortas().toString());
+                System.out.println("Portas: " + monitor.getEstadoPortas().message());
 
                 //cria a thread relacionada ao tempo de andamento do elevador...
                 //DEPOIS aqui vai ser preciso fazer o calculo para quantos pisos o elevador
@@ -75,7 +75,7 @@ public class MainControloElevador implements Runnable {
                 semaforoPortas.release();
                 //para dar tempo para o codigo correr ...
                 Thread.sleep(10);
-                System.out.println("Portas: " + monitor.getEstadoPortas().toString());
+                System.out.println("Portas: " + monitor.getEstadoPortas().message());
 
                 //fica à espera do sinal dado pela thread do andamento do elevador
                 //na chegada ao piso em questão
@@ -86,7 +86,7 @@ public class MainControloElevador implements Runnable {
                 semaforoPortas.release();
                 //para dar tempo para o codigo correr ...
                 Thread.sleep(10);
-                System.out.println("Portas: " + monitor.getEstadoPortas().toString());
+                System.out.println("Portas: " + monitor.getEstadoPortas().message());
 
                 //...
                 Thread.sleep(1000);
