@@ -1,84 +1,77 @@
 package modulos;
 
-import enums.DirecaoMotor;
 import java.util.concurrent.Semaphore;
+import tools.MonitorElevador;
 
-public class Motor implements Runnable {
+public class Motor extends Thread {
 
-    private DirecaoMotor estado;
-    protected Main elevador;
-    Semaphore semaforoMotor;
-
-    /**
-     * Construtor para a thread sem pre-introdução da direção.
-     *
-     * @param semaforoMotor semaforo relacionado ao funcionamento do elevador.
-     */
-    public Motor(Semaphore semaforoMotor) {
-        this.semaforoMotor = semaforoMotor;
-    }
+    private boolean showInterruptedMessage = true;
+    protected MonitorElevador monitor;
+    protected Semaphore semaforoMotor;
 
     /**
      * Construtor para a thread.
      *
      * @param semaforoMotor semaforo relacionado ao funcionamento do elevador.
-     * @param estado enum constant referente à direção
+     * @param monitor
      */
-    public Motor(Semaphore semaforoMotor, DirecaoMotor estado) {
+    public Motor(Semaphore semaforoMotor, MonitorElevador monitor) {
         this.semaforoMotor = semaforoMotor;
-        this.estado = estado;
+        this.monitor = monitor;
     }
 
     @Override
     public void run() {
-        //Quando o main lança a thread do motor, este fica à espera de um sinal
-        //(através do uso do semáforo) para que comece a funcionar.
         try {
-            //repara que só fazemos um acquire(), nao se faz um release() aqui
-            //para que na proxima iteração o semaforo esteja com 0 "estafetas" outravez
-            this.semaforoMotor.acquire();
-            elevador.setEmFuncionamento(true);
+            while (!Thread.interrupted()) {
+                /**
+                 * Quando o main lança a thread do motor, este fica à espera de
+                 * um sinal (através do uso do semáforo) para que comece a
+                 * funcionar.
 
-            //A função main vai alterar o valor do funcionamento para quebrar este ciclo
-            while (elevador.isEmFuncionamento()) {
-                Thread.sleep(1000);
-                switch (this.getEstado()) {
-                    case BAIXO:
-                        System.out.println(this.getEstado().message());
-                        break;
-                    case CIMA:
-                        System.out.println(this.getEstado().message());
-                        break;
-                    default:
-                        //não sabia o que por aqui, até pode nem se por nada.
-                        System.out.println("* Erro na direção de deslocamento!! *");
-                        elevador.setEmFuncionamento(false);
-                        break;
+                 * repara que só fazemos um acquire(), nao se faz um release()
+                 * aqui para que na proxima iteração o semaforo esteja com 0
+                 * "estafetas" outravez
+                 */
+                this.semaforoMotor.acquire();
+                
+                //começa primeiro que o "movimento do elevador" (-100)
+                Thread.sleep(monitor.MOVEMENT_WAITING_TIME - 100);
+
+                //A função main vai alterar o valor do funcionamento para quebrar este ciclo
+                while (this.monitor.isEmFuncionamento()) {
+                    /*
+                    aqui faz-se uma janela com os estados do motor ...
+                    */
+                    
+                    /*
+                    Thread.sleep(500);
+                    switch (this.monitor.getDirecaoMotor()) {
+                        case BAIXO:
+                            System.out.println(this.monitor.getDirecaoMotor().message());
+                            break;
+                        case CIMA:
+                            System.out.println(this.monitor.getDirecaoMotor().message());
+                            break;
+                        default:
+                            //não sabia o que por aqui, até pode nem se por nada.
+                            System.out.println("* Erro na direção de deslocamento!! *");
+                            this.monitor.setFlagFuncionamento(false);
+                            break;
+                    }
+                    Thread.sleep(500);
+                     */
                 }
             }
-
         } catch (InterruptedException ex) {
             //esta exceção pode estar diretamente relacionada ao botao S!!
-            System.out.println("\t* Motor Interrompido! *\n");
+            if (this.showInterruptedMessage == true) {
+                System.out.println("\t* Motor Interrompido! *\n");
+            }
         }
     }
 
-    /**
-     * Altera a direção do motor para se deslocar para cima ou para baixo.
-     *
-     * @param estado enum constant referente à direção
-     */
-    private void setEstado(DirecaoMotor estado) {
-        this.estado = estado;
+    public void setShowInterruptedMessage(boolean flag) {
+        this.showInterruptedMessage = flag;
     }
-
-    /**
-     * Retorna o estado direcional do motor.
-     *
-     * @return enum constant sobre o estado atual do motor
-     */
-    public DirecaoMotor getEstado() {
-        return this.estado;
-    }
-
 }
