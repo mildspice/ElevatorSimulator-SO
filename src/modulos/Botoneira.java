@@ -91,7 +91,7 @@ public class Botoneira extends Thread {
         botoesPisos = new JPanel();
         botoesPisos.setPreferredSize(new Dimension(100, 100));
         //Criação do layout em grelha 2 por 2* (*4 pisos)
-        botoesPisos.setLayout(new GridLayout(2, monitor.NUM_PISOS / 2));
+        botoesPisos.setLayout(new GridLayout(2, monitor.getNUM_PISOS() / 2));
         for (String nomeBotao : monitor.getBotoesPisos()) {
             JButton botao = new JButton(nomeBotao);
             //faz override do método de Ação do botão 

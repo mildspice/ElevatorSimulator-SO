@@ -83,6 +83,10 @@ public class MonitorElevador {
         return this.pisoAtual;
     }
 
+    public int getNUM_PISOS() {
+        return NUM_PISOS;
+    }
+
     /**
      * Retorna a identificação dos botões referentes à botoneira do elevador
      *
