@@ -11,8 +11,9 @@ package enums;
  * <p>
  * 8170283 </p>
  */
-public enum DirecaoMotor {
-    CIMA, BAIXO;
+public enum EstadosMotor {
+    //stopped foi adicionado só por conveniência
+    CIMA, BAIXO, STOPPED;
     
     public String message() {
         switch( this ) {
@@ -20,8 +21,10 @@ public enum DirecaoMotor {
                 return "*** |^  Going Up  ^| ***";
             case BAIXO:
                 return "*** |v Going Down v| ***";
+            case STOPPED:
+                return "*** Engine Stopped ***";
             default:
-                return null;
+                return "*** Direction Not Yet Taken ***";
         }
     }
 }

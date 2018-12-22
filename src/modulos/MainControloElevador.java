@@ -1,98 +1,125 @@
 package modulos;
 
-import enums.DirecaoMotor;
-import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
+import enums.EstadosMotor;
 import tools.MonitorElevador;
 
+/**
+ * <b>Módulo Principal - thread que vai simular todas as operações de controlo
+ * do elevador.</b>
+ * São iniciadas e devidamente terminadas todas as outras threads relativas aos
+ * sub-modulos. (mais coisas para escrever aqui no enunciado ...)
+ */
 public class MainControloElevador implements Runnable {
 
-    //variáveis da classe (elevador)
-    //os pisos estão mais ligados à botoneira.
-    //a informação sobre os pisos está no MonitorElevador porque é/pode ser usada
-    //por várias threads (este é o tipo de coisas que temos que dizer no relatório
-    //e na defesa do projeto :V)
-    //Objeto principal com as flags e os waits e notifies
+    /*
+     * NOTA (antiga, mas serve como 'memo'): 
+     * os pisos estão mais ligados à botoneira. 
+     * A informação sobre os pisos está no MonitorElevador porque
+     * é/pode ser usada por várias threads (este é o tipo de coisas que temos
+     * que dizer no relatório e na defesa do projeto :V)
+     */
+    //Objeto partilhado com as flags, 'waits' e 'notifies', ...
     protected MonitorElevador monitor;
-    //Objeto / Thread relacionado ao motor...
+    private JFrame janelaPrincipal;
+    //threads
     protected Motor motor;
     protected Portas portas;
+    protected Botoneira botoneira;
 
-    //semaforo relacionado ao funcionamento do motor
+    //semaforos relacionados às threads
     protected Semaphore semaforoMotor;
     protected Semaphore semaforoPortas;
+    protected Semaphore semaforoBotoneira;
 
-    public MainControloElevador(Semaphore semaforoMotor, Semaphore semaforoPortas,
-            MonitorElevador monitor, Motor motor, Portas portas) {
+    /**
+     * Construtor para a thread.
+     *
+     * @param semaforoMotor semaforo relacionado ao funcionamento do elevador.
+     * @param semaforoPortas semaforo relacionado ao funcionamento das portas.
+     * @param semaforoBotoneira semaforo relacionado a funções especiais da
+     * botoneira
+     * @param monitor objeto partilhado
+     * @param motor instância da thread relativa ao motor
+     * @param portas instância da thread relativa às portas
+     * @param botoneira instância da thread relativa à botoneira
+     */
+    public MainControloElevador(
+            Semaphore semaforoMotor, Semaphore semaforoPortas, Semaphore semaforoBotoneira,
+            MonitorElevador monitor, Motor motor, Portas portas, Botoneira botoneira) {
         this.semaforoMotor = semaforoMotor;
         this.semaforoPortas = semaforoPortas;
+        this.semaforoBotoneira = semaforoBotoneira;
 
         this.motor = motor;
         this.portas = portas;
+        this.botoneira = botoneira;
         this.monitor = monitor;
     }
 
     @Override
     public void run() {
         try {
+            this.janelaPrincipal = monitor.criarJanelaPrincipal();
             /**
-             * eu coloquei o motor como estando sempre ativo, assim não é
-             * preciso estar sempre a criar threads diferentes em cada
-             * utilização do motor depois para para-lo basta fazer
-             * 'motor.interrupt()' uma vez que no 'run' está um ciclo
-             * while(!Thread.interrupted())' (o mesmo para as portas)
+             * as threads estão colocadas como estando sempre ativas, assim não
+             * é preciso estar sempre a, por exemplo, criar threads diferentes
+             * em cada utilização do motor. Para parar as threds basta fazer
+             * 'instância_thread.interrupt()' uma vez que no 'run' está um ciclo
+             * while(!Thread.interrupted())'
              */
             motor.start();
             portas.start();
-            while (!this.monitor.getInput().equals("EXIT")) {
-                /*
-                /**
-                 * define a direcao do movimento do elevador DEPOIS isto depois
-                 * é verificado aqui consoante o que é introduzido na botoneira
-                 *
-                monitor.setDirecaoMotor(DirecaoMotor.CIMA);
+            botoneira.start();
 
-                /**
-                 * cria a thread relacionada ao tempo de andamento do
-                 * elevador... DEPOIS aqui vai ser preciso fazer o calculo para
-                 * quantos pisos o elevador se vai deslocar ...
-                 *
-                MainMovimentoElevador workingElevator = new MainMovimentoElevador(this.monitor, this.motor, 3);
+            /* exemplo de utilização */
+            int i = 1;
+            while (!Thread.interrupted()) {
+                EstadosMotor[] direcao = {EstadosMotor.CIMA, EstadosMotor.BAIXO};
+
+                monitor.setDirecaoMotor(direcao[i]);
+                MainMovimentoElevador workingElevator
+                        = new MainMovimentoElevador(this.monitor, 3);
                 workingElevator.start();
-                /**
-                 * poe o elevador em andamento (sinaliza) (o while serve para
-                 * esperar que o código do "MainMovimentoElevador" corra para
-                 * evitar confusao possível malfunction ...)
-                 *
-                while (this.monitor.isFloorReached()) {
-                }
-                this.monitor.setFlagFuncionamento(true);
-                //da sinal ao motor para começar a trabalhar...
+
                 semaforoMotor.release();
-                //sinaliza as portas ...
                 semaforoPortas.release();
-                /**
-                 * fica à espera do sinal dado pela thread do andamento do
-                 * elevador na chegada ao piso em questão
-                 *
+
                 workingElevator.join();
 
-                //chegou ao destino, sinaliza a paragem do elevador...
-                this.monitor.setFlagFuncionamento(false);
-                //sinaliza as portas ...
-                semaforoPortas.release();
-                 */
+                if (i == 0) {
+                    i++;
+                } else {
+                    i--;
+                }
+                Thread.sleep(1000);
             }
 
-            //desliga o motor...
-            motor.setShowInterruptedMessage(false);
+            //a thread só acaba quando for interrompida
+            //logo a ultima parte do codigo faz-se no catch
+            //no entanto, fica aqui tambem em caso de haver problemas ...
+            System.out.println();
+            System.out.println("\t* Interrompendo as threads *\n\t\t...");
             motor.interrupt();
             portas.interrupt();
+            botoneira.interrupt();
+            this.janelaPrincipal.dispose();
+
         } catch (IllegalThreadStateException ex) {
+            Thread.currentThread().interrupt();
             Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(0);
+
+        } catch (InterruptedException ex) {
+            System.out.println();
+            System.out.println("\t* Interrompendo as threads *\n\t\t...\n");
+            motor.interrupt();
+            portas.interrupt();
+            botoneira.interrupt();
+            this.janelaPrincipal.dispose();
         }
     }
 
@@ -100,7 +127,7 @@ public class MainControloElevador implements Runnable {
         /*
         Este semáforo vai servir para quando fizermos operações de escrever 
         os logs no ficheiro e assim.
-        Um exemplo: O módulo Main é constutuido por várias classes (diferentes threads).
+        Um exemplo: O módulo Main é constituido por várias classes (diferentes threads).
           Imaginemos, temos uma thread relacionada ao movimento do elevador
               (já temos essa thread, "MainMovimentoElevador") e outra que por alguma razão
               analisa quantas vezes as portas abriram e fecharam.
@@ -115,23 +142,30 @@ public class MainControloElevador implements Runnable {
         Isto no fundo serve para evitar que o código se faça simultaneamente.
          */
         Semaphore exclusaoMutua = new Semaphore(1);
-        //semaforos relacionados ao funcionamento dos sub-modulos
+        /**
+         * semaforos relacionados ao funcionamento dos sub-modulos
+         */
+        //0 permições iniciais para correr só quando "mandado"
         Semaphore semaforoMotor = new Semaphore(0);
+        //1 permição inicial para verificar as portas logo na primeira iteração
         Semaphore semaforoPortas = new Semaphore(1);
+        Semaphore semaforoBotoneira = new Semaphore(0);
 
-        //sharedobject e threads secundárias
+        //objeto partilhado entre todas as threads
         MonitorElevador monitor = new MonitorElevador(4);
+
+        //threads ...
         Portas portas = new Portas(semaforoPortas, monitor);
         portas.setName("[Thread_PortasElevador]");
-        //motor extends Thread (e assim já nao é preciso fazer uma instância de 'Thread'
         Motor motor = new Motor(semaforoMotor, monitor);
         motor.setName("[Thread_MotorElevador]");
+        Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor);
+        motor.setName("[Thread_Botoneira]");
 
         //thread principal
         Thread controloElevador = new Thread(
-                new MainControloElevador(semaforoMotor, semaforoPortas,
-                        monitor, motor, portas), "[Thread_ControloElevador]");
-
+                new MainControloElevador(semaforoMotor, semaforoPortas, semaforoBotoneira,
+                        monitor, motor, portas, botoneira), "[Thread_ControloElevador]");
         controloElevador.start();
 
         try {

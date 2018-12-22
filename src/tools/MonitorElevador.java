@@ -1,15 +1,13 @@
 package tools;
 
-import enums.DirecaoMotor;
-import enums.EstadoPortas;
+import enums.EstadosMotor;
+import enums.EstadosPortas;
 import javax.swing.JFrame;
 
 /**
- * Extensão do módulo Main (mais propriamente "MainControloElevador") que
- * funciona como um "shared object" para facilitar a comunicação entre as
- * diferentes threads.
- *
- * @author Asus
+ * <b>Shared Object</b>
+ * Objeto partilhado entre todas as threads que contém todas as variáveis e
+ * métodos convenientes.
  */
 public class MonitorElevador {
 
@@ -20,19 +18,18 @@ public class MonitorElevador {
     //variáveis gerais do funcionamento do elevador
     private boolean flagFloorReached = true;
     private boolean flagFuncionamento = false;
-    private final int NUM_PISOS;
+    public final int NUM_PISOS;
     private int pisoAtual = 0;
 
     //variáveis relacionadas ao estado do motor e das portas
-    private DirecaoMotor direcaoMotor;
-    private EstadoPortas estadoPortas = EstadoPortas.ABERTO;
+    private EstadosMotor direcaoMotor;
+    private EstadosPortas estadoPortas = EstadosPortas.ABERTO;
 
     //variâveis relacionadas ao funcionamento da Botoneira
-    private enum Botoes {
-        A, F, S, K;
-    };
     private final String[] botoesPisos;
-    private String input = null;
+    private final String[] botoesPortas = {"A", "F"};
+    private boolean chave = false;
+    private String input = "";
 
     public MonitorElevador(int numPisos) {
         this.NUM_PISOS = numPisos;
@@ -52,11 +49,7 @@ public class MonitorElevador {
 
     public synchronized void espera() {
         try {
-            //tive que adicionar a alteração da flag aqui porque o ElevatorRunTime
-            //demorava muito tempo a faze-lo e este método não fazia o wait() ...
-            //(estes algoritmos so dao trabalho)
-            this.flagFloorReached = false;
-            while (!flagFloorReached) {
+            while (!this.flagFuncionamento) {
                 this.wait();
             }
 
@@ -64,12 +57,77 @@ public class MonitorElevador {
         }
     }
 
+    /**
+     * Atualiza a posição do elevador.
+     *
+     * @param piso numero do piso onde se encontra o elevador
+     */
     public synchronized void setPisoAtual(int piso) {
         this.pisoAtual = piso;
     }
 
+    /**
+     * Retorna a posição atual do elevador
+     *
+     * @return numero do piso onde se encontra atualmente o elevador
+     */
     public synchronized int getPisoAtual() {
         return this.pisoAtual;
+    }
+
+    /**
+     * Retorna a identificação dos botões referentes à botoneira do elevador
+     *
+     * @return array de String com o nome dos botões dos pisos
+     */
+    public synchronized String[] getBotoesPisos() {
+        return this.botoesPisos;
+    }
+
+    /**
+     * Retorna a identificação dos botões referentes à botoneira do elevador
+     *
+     * @return array de String com o nome dos botões relativos ao estado das
+     * portas
+     */
+    public synchronized String[] getBotoesPortas() {
+        return this.botoesPortas;
+    }
+
+    /**
+     * (Este método só vai ser utilizado pelo botão do JFrame)
+     *
+     * @param state estado boleano da chave
+     */
+    public synchronized void setChave(boolean state) {
+        this.chave = state;
+    }
+
+    /**
+     * Retorna o estado da chave.
+     *
+     * @return estado boleano da chave
+     */
+    public synchronized boolean isChaveAcionada() {
+        return this.chave;
+    }
+
+    /**
+     * Guarda o input feito pela botoneira. (Método utilizado só pelo JFrame)
+     *
+     * @param input string com o input
+     */
+    public synchronized void setInput(String input) {
+        this.input = input;
+    }
+
+    /**
+     * Retorna o input feito pelo utilizador (na botoneira)
+     *
+     * @return string com o input
+     */
+    public synchronized String getInput() {
+        return this.input;
     }
 
     /**
@@ -77,7 +135,7 @@ public class MonitorElevador {
      *
      * @param estado enum constant referente à direção
      */
-    public synchronized void setDirecaoMotor(DirecaoMotor estado) {
+    public synchronized void setDirecaoMotor(EstadosMotor estado) {
         this.direcaoMotor = estado;
     }
 
@@ -86,7 +144,7 @@ public class MonitorElevador {
      *
      * @return enum constant sobre o estado atual do motor
      */
-    public synchronized DirecaoMotor getDirecaoMotor() {
+    public synchronized EstadosMotor getDirecaoMotor() {
         return this.direcaoMotor;
     }
 
@@ -95,7 +153,7 @@ public class MonitorElevador {
      *
      * @param estado enum constant referente ao estado das portas
      */
-    public synchronized void setEstadoPortas(EstadoPortas estado) {
+    public synchronized void setEstadoPortas(EstadosPortas estado) {
         this.estadoPortas = estado;
     }
 
@@ -104,7 +162,7 @@ public class MonitorElevador {
      *
      * @return enum constant sobre o estado das portas
      */
-    public synchronized EstadoPortas getEstadoPortas() {
+    public synchronized EstadosPortas getEstadoPortas() {
         return this.estadoPortas;
     }
 
@@ -143,12 +201,11 @@ public class MonitorElevador {
     public synchronized boolean isEmFuncionamento() {
         return this.flagFuncionamento;
     }
-
-    public synchronized void setInput(String input) {
-        this.input = input;
-    }
-
-    public synchronized String getInput() {
-        return this.input;
+    
+    public JFrame criarJanelaPrincipal() {
+        /* FAZER JANELA PRINCIPAL DO ELEVADOR */
+        JFrame guiFrame = new JFrame();
+        
+        return guiFrame;
     }
 }

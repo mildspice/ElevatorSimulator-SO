@@ -11,7 +11,7 @@ package enums;
  * <p>
  * 8170283 </p>
  */
-public enum EstadoPortas {
+public enum EstadosPortas {
     ABERTO, FECHADO;
     
     public String message() {
