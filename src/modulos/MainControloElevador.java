@@ -151,10 +151,8 @@ public class MainControloElevador implements Runnable {
         Semaphore semaforoPortas = new Semaphore(1);
         Semaphore semaforoBotoneira = new Semaphore(0);
 
-        //objeto partilhado entre todas as threads
-        MonitorElevador monitor = new MonitorElevador(4);
-
-        //threads ...
+        //sharedobject e threads secundárias
+        MonitorElevador monitor = new MonitorElevador(exclusaoMutua);
         Portas portas = new Portas(semaforoPortas, monitor);
         portas.setName("[Thread_PortasElevador]");
         Motor motor = new Motor(semaforoMotor, monitor);

@@ -3,6 +3,12 @@ package tools;
 import enums.EstadosMotor;
 import enums.EstadosPortas;
 import javax.swing.JFrame;
+import java.io.*;
+import java.util.Properties;
+import java.util.concurrent.Semaphore;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * <b>Shared Object</b>
@@ -20,10 +26,14 @@ public class MonitorElevador {
     private boolean flagFuncionamento = false;
     public final int NUM_PISOS;
     private int pisoAtual = 0;
+    protected Semaphore exclusaoMutua;
 
     //variáveis relacionadas ao estado do motor e das portas
     private EstadosMotor direcaoMotor;
     private EstadosPortas estadoPortas = EstadosPortas.ABERTO;
+
+    //variáveis do log
+    private double tempoExec;
 
     //variâveis relacionadas ao funcionamento da Botoneira
     private final String[] botoesPisos;
@@ -31,12 +41,10 @@ public class MonitorElevador {
     private boolean chave = false;
     private String input = "";
 
-    public MonitorElevador(int numPisos) {
-        this.NUM_PISOS = numPisos;
-        this.botoesPisos = new String[numPisos];
-        for (int i = 0; i < this.botoesPisos.length; i++) {
-            this.botoesPisos[i] = "PISO" + i;
-        }
+    public MonitorElevador(Semaphore exclusaoMutua) {
+
+        setDefinitions();
+        this.exclusaoMutua = exclusaoMutua;
     }
 
     public synchronized void acorda() {
@@ -208,4 +216,79 @@ public class MonitorElevador {
         
         return guiFrame;
     }
+
+    public double getTempoExec() {
+        return tempoExec;
+    }
+
+    public void setTempoExec(double tempoExec) {
+        this.tempoExec = tempoExec;
+    }
+
+    public synchronized void writeLog(Thread thread, int pisoInicial, int pisoFinal) {
+
+        Logger logger = Logger.getLogger("ElevatorLog");
+        FileHandler fh;
+
+        try {
+
+            fh = new FileHandler("ElevatorLog.log");
+            logger.addHandler(fh);
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            fh.setFormatter(simpleFormatter);
+            logger.info(thread.getName() + " Piso Inicial: " + pisoInicial + " Piso Final: " + pisoFinal +
+                    " Peso transportado: " + carga + " Tempo de trabalho: " + getTempoExec());
+
+        } catch (IOException ex) {
+
+        }
+
+    }
+
+    public synchronized void setDefinitions() {
+
+        File deffile = new File("definicoes.properties");
+        boolean checker = false;
+
+        try {
+            FileReader fr = new FileReader(deffile);
+            checker = true;
+        } catch (FileNotFoundException fio) {
+            System.out.print("File not found");
+
+        }
+
+        if (checker == true) {
+            Properties p = new Properties();
+            try {
+                p.load(new FileInputStream(deffile));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            NUM_PISOS = Integer.parseInt(p.getProperty("pisos"));
+            this.botoesPisos = new String[NUM_PISOS];
+            for (int i = 0; i < this.botoesPisos.length; i++) {
+                this.botoesPisos[i] = "PISO" + i;
+            }
+            carga=Integer.parseInt(p.getProperty("carga"));
+        }
+      /*  try {
+            FileReader fileReader = new FileReader(deffile);
+            BufferedReader br = new BufferedReader(fileReader);
+            String line;
+            while((line=br.readLine())!=null){
+
+
+
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } */
+
+
+    }
+
 }

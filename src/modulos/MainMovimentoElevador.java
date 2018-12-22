@@ -31,6 +31,7 @@ public class MainMovimentoElevador extends Thread {
 
     @Override
     public void run() {
+
         //nome da thread (caso dê jeito usar, senao pode-se tirar ...)
         Thread.currentThread().setName("[Thread_RunningElevator]");
         try {
@@ -73,7 +74,8 @@ public class MainMovimentoElevador extends Thread {
                     this.monitor.setPisoAtual(this.monitor.getPisoAtual() - 1);
                 }
             }
-            //sinalização sobre a chegada ao destino
+            //sinalização
+
             this.monitor.setFloorReachedFlag(true);
         } catch (InterruptedException ex) {
             Logger.getLogger(MainMovimentoElevador.class.getName()).log(Level.SEVERE, null, ex);
