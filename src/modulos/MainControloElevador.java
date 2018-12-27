@@ -8,10 +8,15 @@ import enums.EstadosMotor;
 import tools.MonitorElevador;
 
 /**
- * <b>Módulo Principal - thread que vai simular todas as operações de controlo
- * do elevador.</b>
- * São iniciadas e devidamente terminadas todas as outras threads relativas aos
- * sub-modulos. (mais coisas para escrever aqui no enunciado ...)
+ * <h1>Módulo Principal</h1>
+ * <b>- thread que vai simular todas as operações de controlo do elevador.</b>
+ * <p>
+ * <b>São iniciadas e devidamente terminadas todas as outras threads relativas
+ * aos sub-modulos. Esta thread é também responsável pelo processamento e
+ * decisões principais decorrentes do funcionamento do elevador.</b>
+ * </p>
+ *
+ * @author Grupo21-8170212_8170282_8170283
  */
 public class MainControloElevador implements Runnable {
 
@@ -60,6 +65,21 @@ public class MainControloElevador implements Runnable {
         this.monitor = monitor;
     }
 
+    /**
+     * <b>Método responsável pelo funcionamento da thread.</b>
+     * <p>
+     * NOTAS (estão espalhados ao longo do código vários comentários
+     * importantes, no entanto alguns vão ser colocados aqui por conveniência do
+     * javadoc.):
+     * </p>
+     * <p>
+     * - as threads estão colocadas como estando sempre ativas, assim não é
+     * preciso estar sempre a, por exemplo, criar threads diferentes em cada
+     * utilização do motor. Para parar as threds basta fazer
+     * 'instância_thread.interrupt()' uma vez que no 'run' está um ciclo
+     * while(!Thread.interrupted())'.
+     * </p>
+     */
     @Override
     public void run() {
         try {
@@ -75,34 +95,75 @@ public class MainControloElevador implements Runnable {
             portas.start();
             botoneira.start();
 
-            /* exemplo de utilização */
-            int i = 1;
             while (!Thread.interrupted()) {
-                EstadosMotor[] direcao = {EstadosMotor.CIMA, EstadosMotor.BAIXO};
+                /*
+                fica à espera do input na botoneira
+                (a permição é dada quando o elevador se encontra em estado IDLE
+                uma vez que depois de avançar para além deste semáforo vai entrar
+                dentro de um ciclo que itera enquanto existirem pisos em fila.)
+                 */
+                semaforoBotoneira.acquire();
+                /*
+                tanto os botoes dos pisos como a chave fazem release de permits
+                de funcionamento (para evitar problemas na falta de permits, pois
+                levaria a ter que se reiniciar completamente o processo).
+                Então, logo após a thread começar a funcionar drena os permits todos.
+                 */
+                semaforoBotoneira.drainPermits();
 
-                monitor.setDirecaoMotor(direcao[i]);
-                MainMovimentoElevador workingElevator
-                        = new MainMovimentoElevador(this.monitor, 3);
-                workingElevator.start();
-
-                semaforoMotor.release();
-                semaforoPortas.release();
-
-                workingElevator.join();
-
-                if (i == 0) {
-                    i++;
+                if (monitor.isChaveAcionada()) {
+                    monitor.printWarning("Chave Acionada!\n"
+                            + "Deslocacao do elevador impedida.", true);
                 } else {
-                    i--;
-                }
-                Thread.sleep(1000);
-            }
+                    while (!monitor.getFloorQueue().isEmpty()) {
+                        //calcular a distância e sentido
+                        int piso = 0, pisosADeslocar;
+                        while (!monitor.getFloorQueue().get(0).equals(monitor.getBotoesPisos()[piso])) {
+                            piso++;
+                        }
+                        piso++; //piso = indice array + 1;
+                        if (monitor.getPisoAtual() == piso) {
+                            monitor.printWarning("Ja se encontra no piso!", true);
+                            monitor.removeFloorReached();
+                        } else {
+                            if (monitor.getPisoAtual() > piso) {
+                                pisosADeslocar = monitor.getPisoAtual() - piso;
+                                monitor.setDirecaoMotor(EstadosMotor.BAIXO);
+                            } else {
+                                pisosADeslocar = piso - monitor.getPisoAtual();
+                                monitor.setDirecaoMotor(EstadosMotor.CIMA);
+                            }
 
+                            //iniciar o movimento
+                            MainMovimentoElevador workingElevator
+                                    = new MainMovimentoElevador(monitor, pisosADeslocar);
+                            workingElevator.start();
+                            //sinalizar o motor
+                            semaforoMotor.release();
+                            //espera pela "preparação" do motor
+                            monitor.espera();
+                            //sinalizar as portas
+                            semaforoPortas.release();
+                            //esperar pela chegada ao destino
+                            workingElevator.join();
+                            //(esperar pelo código)
+                            while (monitor.isEmFuncionamento()) {
+                            }
+                            Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
+                            //sinalizar as portas novamente
+                            semaforoPortas.release();
+                        }
+                    }
+                }
+
+            }
             //a thread só acaba quando for interrompida
             //logo a ultima parte do codigo faz-se no catch
             //no entanto, fica aqui tambem em caso de haver problemas ...
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...");
+            monitor.printWarning("GoOdByE!", false);
+            Thread.sleep(1000 * 3);
             motor.interrupt();
             portas.interrupt();
             botoneira.interrupt();
@@ -111,8 +172,6 @@ public class MainControloElevador implements Runnable {
         } catch (IllegalThreadStateException ex) {
             Thread.currentThread().interrupt();
             Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(0);
-
         } catch (InterruptedException ex) {
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...\n");
@@ -148,7 +207,7 @@ public class MainControloElevador implements Runnable {
         //0 permições iniciais para correr só quando "mandado"
         Semaphore semaforoMotor = new Semaphore(0);
         //1 permição inicial para verificar as portas logo na primeira iteração
-        Semaphore semaforoPortas = new Semaphore(1);
+        Semaphore semaforoPortas = new Semaphore(0);
         Semaphore semaforoBotoneira = new Semaphore(0);
 
         //sharedobject e threads secundárias
@@ -157,7 +216,7 @@ public class MainControloElevador implements Runnable {
         portas.setName("[Thread_PortasElevador]");
         Motor motor = new Motor(semaforoMotor, monitor);
         motor.setName("[Thread_MotorElevador]");
-        Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor);
+        Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor, semaforoPortas);
         motor.setName("[Thread_Botoneira]");
 
         //thread principal
@@ -168,9 +227,15 @@ public class MainControloElevador implements Runnable {
 
         try {
             controloElevador.join();
+            Thread[] tarray = new Thread[Thread.activeCount()];
+            if (Thread.enumerate(tarray) < tarray.length) {
+                System.out.println("Couldn't terminate all threads!");
+            }
+            for (Thread t : tarray) {
+                t.interrupt();
+            }
             System.out.println("\t* Elevador Desativado! *");
         } catch (InterruptedException ex) {
-            Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

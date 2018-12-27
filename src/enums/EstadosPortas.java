@@ -1,25 +1,76 @@
 package enums;
 
 /**
- * Enumeração com as opções para o estado das portas do elevador.
+ * <h1>Enumeração com as opções para o estado das portas do elevador.</h1>
  *
- * @author Grupo4
- * <p>
- * 8170212 </p>
- * <p>
- * 8170282 </p>
- * <p>
- * 8170283 </p>
+ * @author Grupo21-8170212_8170282_8170283
  */
 public enum EstadosPortas {
     ABERTO, FECHADO;
-    
+
+    //mais uma coisa completamente desnecessária, agora com a imagem de uma porta ...
+    private final String doorClosed
+            = "______|=======|______\n"
+            + "|___________________|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|==.''.\n"
+            + "|__|=======|=======|__|==|/\\|\n"
+            + "|__|=======|=======|__|==|\\/|\n"
+            + "|__|=======|=======|__|=='..'\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|=======|=======|__|\n"
+            + "|__|_______|_______|__|\n";
+    private final String doorOpen
+            = "_______|_______|_______\n"
+            + "|_____________________|\n"
+            + "|__|_|===========|_|__|\n"
+            + "|__|_|===========|_|__|\n"
+            + "|__|_|===========|_|__|\n"
+            + "|__|_|===_____===|_|__|\n"
+            + "|__|_|==/=====\\==|_|__|==.''.\n"
+            + "|__|_|=|=O\\=/O=|=|_|__|==|/\\|\n"
+            + "|__|_|=|==___==|=|_|__|==|\\/|\n"
+            + "|__|_|==\\_____/==|_|__|=='..'\n"
+            + "|__|_|=====|=====|_|__|\n"
+            + "|__|_|===/=|=\\===|_|__|\n"
+            + "|__|_|===\\=|=/===|_|__|\n"
+            + "|__|_|====/=\\====|_|__|\n"
+            + "|__|_|___|___|___|_|__|\n";
+
+    /**
+     * Retorna uma linha única com uma mensagem referente ao estado da
+     * enumeração da instância
+     *
+     * @return string com a mensagem
+     */
     public String message() {
-        switch( this ) {
+        switch (this) {
             case ABERTO:
                 return "**** <-  OPEN  -> ****";
             case FECHADO:
                 return "**** -> CLOSED <- ****";
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Retorna uma string de várias linhas com uma mensagem referente ao estado
+     * da enumeração da instância
+     *
+     * @return string com a mensagem, prettier.
+     */
+    public String prettyDisplay() {
+        switch (this) {
+            case ABERTO:
+                return doorOpen;
+            case FECHADO:
+                return doorClosed;
             default:
                 return null;
         }

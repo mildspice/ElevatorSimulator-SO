@@ -4,18 +4,28 @@ import enums.EstadosPortas;
 import tools.MonitorElevador;
 import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
+import javax.swing.JTextArea;
 
 /**
- * <b>Sub-módulo Portas - thread de simulação do funcionamento automático das
- * portas do elevador.</b>
+ * <h1>Sub-módulo - Portas</h1>
+ * <p>
+ * <b>- Thread de simulação do funcionamento automático das portas do
+ * elevador.</b>
+ * </p>
+ *
+ * @author Grupo21-8170212_8170282_8170283
  */
 public class Portas extends Thread {
 
     private JFrame guiFrame;
-    private JTextField displayDirecao;
-    private JTextPane displayEffects;
+    private JTextField displayEstado;
+    private JTextArea displayPretty;
 
     protected MonitorElevador monitor;
     protected Semaphore semaforoPortas;
@@ -31,61 +41,103 @@ public class Portas extends Thread {
         this.monitor = monitor;
     }
 
+    /**
+     * <b>Método responsável pelo funcionamento da thread.</b>
+     * <p>
+     * Novamente, as operações da thread estão dentro de um ciclo que quebrará
+     * quando a thread for interrompida. É também feita a verificação relativa à
+     * chave de bloqueio do elevador.
+     * </p>
+     */
     @Override
     public void run() {
         try {
             this.criarJanela();
+            displayEstado.setText(monitor.getEstadoPortas().message());
+            displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
 
             while (!Thread.interrupted()) {
                 //este semaforo serve para que o ciclo nao esteja a correr constantemente
                 //as portas funcionam só quando é sinalizado
                 semaforoPortas.acquire();
 
-                if (monitor.isFloorReached() && !monitor.isEmFuncionamento()) {
-                    monitor.setEstadoPortas(EstadosPortas.ABERTO);
+                //verificar a chave
+                if (monitor.isChaveAcionada()) {
+                    monitor.printWarning("Chave Acionada!\n"
+                            + "Movimento das Portas Impedido.", true);
 
                 } else {
-                    monitor.setEstadoPortas(EstadosPortas.FECHADO);
+                    /*
+                    NOTA: quando o botao S é utilizado, o elevador está parado
+                    mas pode não estar num piso, daí a opção alternativa nas condições.
+                    
+                    para que seja possível utilizar os botoes das portas é preciso
+                    que o elevador esteja completamente parado!
+                     */
+                    if (!monitor.isEmFuncionamento() && monitor.isFloorReached()
+                            || monitor.getBotaoPortas() == true && !monitor.isEmFuncionamento()) {
+                        //esta condição tem de ser repetido devido ser possível alterar
+                        //manualmente o estado das portas quando isFloorReached é true
+                        if (monitor.getBotaoPortas() == false) {
+                            monitor.setEstadoPortas(EstadosPortas.FECHADO);
+                        } else {
+                            monitor.setEstadoPortas(EstadosPortas.ABERTO);
+                        }
+                        //quando o elevador foi parado manualmente e o utilizador
+                        //decide abrir as portas
+                        if (!monitor.isFloorReached()) {
+                            monitor.printWarning("\nWARNING - "
+                                    + "O elevador nao se encontra num piso!!"
+                                    + "Pretende cometer suicidio?", true);
+                        }
+
+                    } else if (monitor.isEmFuncionamento()
+                            || monitor.getBotaoPortas() == false && !monitor.isEmFuncionamento()) {
+                        monitor.setEstadoPortas(EstadosPortas.FECHADO);
+                    }
                 }
 
+                displayEstado.setText(monitor.getEstadoPortas().message());
+                displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
             }
 
-            this.guiFrame.dispose();
+            //this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }
     }
 
+    /**
+     * Cria o JFrame relativo ao sub-módulo Portas onde estará presente
+     * informação relativa ao estado das portas.
+     */
     private void criarJanela() {
-        /* FAZER A JANELA DAS PORTAS
         this.guiFrame = new JFrame();
 
         guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        guiFrame.setTitle("[ Motor ]");
-        guiFrame.setSize(200, 300);
+        guiFrame.setTitle("[ Portas ]");
         guiFrame.setLocationByPlatform(true);
 
-        JPanel estadoMotor = new JPanel();
-        JLabel label = new JLabel("Direcao Motor:");
-        this.displayDirecao = new JTextField();
-        displayDirecao.setPreferredSize(new Dimension(150, 50));
-        displayDirecao.setHorizontalAlignment(JTextField.CENTER);
-        estadoMotor.add(label);
-        estadoMotor.add(this.displayDirecao);
+        JPanel estadoPortas = new JPanel();
+        JLabel label = new JLabel("{Estado Portas}");
+        this.displayEstado = new JTextField();
+        displayEstado.setEditable(false);
+        displayEstado.setPreferredSize(new Dimension(150, 50));
+        displayEstado.setHorizontalAlignment(JTextField.CENTER);
+        estadoPortas.add(label);
+        estadoPortas.add(this.displayEstado);
 
-        JPanel effects = new JPanel();
-        this.displayEffects = new JTextPane();
-        this.displayEffects.setPreferredSize(new Dimension(150, 150));
-        StyledDocument doc = displayEffects.getStyledDocument();
-        SimpleAttributeSet center = new SimpleAttributeSet();
-        StyleConstants.setAlignment(center, StyleConstants.ALIGN_CENTER);
-        doc.setParagraphAttributes(0, doc.getLength(), center, false);
-        effects.add(this.displayEffects);
+        JPanel pretty = new JPanel();
+        this.displayPretty = new JTextArea(23, 15);
+        displayPretty.setEditable(false);
+        this.displayPretty.setPreferredSize(new Dimension(350, 400));
+        JScrollPane scrollPane = new JScrollPane(displayPretty);
+        pretty.add(scrollPane);
 
-        guiFrame.add(estadoMotor, BorderLayout.NORTH);
-        guiFrame.add(effects, BorderLayout.SOUTH);
+        guiFrame.add(estadoPortas, BorderLayout.NORTH);
+        guiFrame.add(pretty, BorderLayout.SOUTH);
 
+        guiFrame.pack();
         guiFrame.setVisible(true);
-        */
     }
 }

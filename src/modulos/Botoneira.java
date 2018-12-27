@@ -1,6 +1,5 @@
 package modulos;
 
-import enums.EstadosMotor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -11,13 +10,19 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import tools.MonitorElevador;
 
 /**
- * <b>Sub-módulo Botoneira - thread que vai simular o conjuto de botões que
- * possibilitam o uso do elevador.</b>
+ * <h1>Sub-módulo - Botoneira</h1>
+ * <p>
+ * <b>- Thread que vai simular o conjuto de botões que possibilitam o uso do
+ * elevador.</b>
+ * </p>
+ *
+ * @author Grupo21-8170212_8170282_8170283
  */
 public class Botoneira extends Thread {
 
@@ -26,51 +31,65 @@ public class Botoneira extends Thread {
     private JPanel botoesPisos;
     private JPanel botoesEspeciais;
     private JToggleButton chave;
-    private JTextField displayInput;
+    private JTextArea displayInput;
 
     protected MonitorElevador monitor;
     protected Semaphore semaforoBotoneira;
+    //semaforo usado pelos botões das portas
+    protected Semaphore semaforoPortas;
 
     /**
      * Construtor da thread.
+     * <p>
+     * <b>(Nota: parte do código do programa poderá estar feito dentro dos
+     * próprios botões.)</b>
+     * </p>
      *
-     * @param semaforo
-     * @param monitor
+     * @param semaforo semaforo relacionado a funções especiais da botoneira
+     * @param monitor objeto partilhado
+     * @param semaforoPortas semaforo relacionado ao funcionamento das portas.
      */
-    public Botoneira(Semaphore semaforo, MonitorElevador monitor) {
+    public Botoneira(Semaphore semaforo, MonitorElevador monitor, Semaphore semaforoPortas) {
         this.semaforoBotoneira = semaforo;
         this.monitor = monitor;
+        this.semaforoPortas = semaforoPortas;
     }
 
+    /**
+     * <b>Método responsável pelo funcionamento da thread.</b>
+     * <p>
+     * No entanto, as operações desta thread fazem-se principalmente nos botões,
+     * sendo que neste método estariam funções mais específicas para o
+     * funcionamento desses botões.
+     * </p>
+     */
     @Override
     public void run() {
         try {
             this.criarJanela();
-
+            Semaphore temp = new Semaphore(0);
             /**
              * ainda não sei muito bem o que fazer com este ciclo, mas acho que
              * vai dar jeito. No fundo, vai ser para fazer operações especiais
              * em relação aos inputs ou para impedir o uso de botoes, ...
              */
             while (!Thread.interrupted()) {
-                Thread.sleep(100);
-                if (monitor.isEmFuncionamento()) {
-                    chave.setEnabled(false);
-                    chave.setSelected(false);
-                } else {
-                    chave.setEnabled(true);
-                }
+
+                temp.acquire();
+
             }
+            //this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }
     }
 
+    /**
+     * Cria o JFrame relativo ao sub-módulo Botoneira onde estarão todos os
+     * botões relativos ao funcionamento do elevador, tal como algumas
+     * informações pertinentes.
+     */
     private void criarJanela() {
-        /**
-         * tutorial:
-         * https://www.thoughtco.com/coding-a-simple-graphical-user-interface-2034064
-         */
         this.guiFrame = new JFrame();
 
         guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -91,19 +110,29 @@ public class Botoneira extends Thread {
         botoesPisos = new JPanel();
         botoesPisos.setPreferredSize(new Dimension(100, 100));
         //Criação do layout em grelha 2 por 2* (*4 pisos)
-        botoesPisos.setLayout(new GridLayout(2, monitor.getNUM_PISOS() / 2));
+        botoesPisos.setLayout(new GridLayout(2, monitor.getNumPisos() / 2));
         for (String nomeBotao : monitor.getBotoesPisos()) {
+
             JButton botao = new JButton(nomeBotao);
             //faz override do método de Ação do botão 
             //(código que o botao vai correr...)
-            botao.addActionListener((ActionEvent e) -> {
-                if (!monitor.isEmFuncionamento()) {
-                    monitor.setInput(nomeBotao);
-                    displayInput.setText(nomeBotao);
-                } else {
-                    displayInput.setText("Elevador em andamento!");
-                }
-            });
+            botao.addActionListener(
+                    (ActionEvent e) -> {
+                        /* CÓDIGO DOS BOTÕES DOS PISOS ! */
+                        displayInput.setText(nomeBotao);
+                        if (monitor.isEmFuncionamento()) {
+                            displayInput.append("\n- Destino adicionado a fila.");
+                        }
+                        monitor.addFloorToQueue(nomeBotao);
+                        monitor.displayQueue();
+
+                        //liberta uma permição só quando o elevador estiver
+                        //em estado IDLE
+                        if (monitor.getFloorQueue().isEmpty() && semaforoBotoneira.availablePermits() < 1
+                        || !monitor.isEmFuncionamento() && semaforoBotoneira.availablePermits() < 1) {
+                            semaforoBotoneira.release();
+                        }
+                    });
             //adiciona o botao a uma célula da grelha
             botoesPisos.add(botao);
         }
@@ -113,51 +142,92 @@ public class Botoneira extends Thread {
         botoesEspeciais.setLayout(new GridLayout(2, 2));
         botoesEspeciais.setPreferredSize(new Dimension(140, 100));
         //botoes das portas
-        for (String nomeBotao : monitor.getBotoesPortas()) {
+        final String[] botoesPortas = {"A", "F"};
+        for (String nomeBotao : botoesPortas) {
             JButton botao = new JButton(nomeBotao);
-            botao.addActionListener((ActionEvent e) -> {
-                monitor.setInput(nomeBotao);
-                displayInput.setText(nomeBotao);
-            });
+            if (nomeBotao.equals("A")) {
+                botao.addActionListener(
+                        (ActionEvent e) -> {
+                            /* CÓDIGO DOS BOTÕES DAS PORTAS */
+                            if (!monitor.isEmFuncionamento()) {
+                                monitor.setBotaoPortas(true);
+                                displayInput.setText(nomeBotao + " - Aberto");
+                            } else {
+                                monitor.printWarning("Elevador a funcionar!", false);
+                            }
+
+                            semaforoPortas.release();
+                        });
+            } else if (nomeBotao.equals("F")) {
+                botao.addActionListener(
+                        (ActionEvent e) -> {
+                            /* CÓDIGO DOS BOTÕES DAS PORTAS */
+                            if (!monitor.isEmFuncionamento()) {
+                                monitor.setBotaoPortas(false);
+                                displayInput.setText(nomeBotao + " - Fechado");
+                            } else {
+                                monitor.printWarning("Elevador a funcionar!", false);
+                            }
+
+                            semaforoPortas.release();
+                        });
+            }
             botoesEspeciais.add(botao);
         }
         //botao de stop e chave
         JButton botaoStop = new JButton("S");
-        botaoStop.addActionListener((ActionEvent e) -> {
-            if (monitor.isEmFuncionamento()) {
-                monitor.setFlagFuncionamento(false);
-                displayInput.setText("Elevador parado manualmente!");
-            } else {
-                monitor.setFlagFuncionamento(true);
-                monitor.acordaTodas();
-                displayInput.setText("Elevador a funcionar.");
-            }
-        });
+        botaoStop.addActionListener(
+                (ActionEvent e) -> {
+                    /* CÓDIGO DO BOTÃO DE STOP */
+                    if (monitor.isEmFuncionamento()) {
+                        monitor.setFlagFuncionamento(false);
+                        monitor.printWarning("Paragem Sinalizada!", false);
+                    } else {
+                        if (monitor.getFloorQueue().isEmpty() && monitor.isFloorReached()) {
+                            monitor.printWarning("Experimente selecionar um piso primeiro.", true);
+                        } else {
+                            monitor.setFlagFuncionamento(true);
+                            semaforoPortas.release();
+                            monitor.acordaTodas();
+                            monitor.printWarning("Elevador acionado!", false);
+                        }
+                    }
+                });
         botoesEspeciais.add(botaoStop);
         //a chave é um botao diferente (toggle)
-        JToggleButton chave = new JToggleButton("K", false);
+        chave = new JToggleButton("K", false);
         //novamente faz override do método de "listen" do botão
-        chave.addItemListener((ItemEvent e) -> {
-            if (!monitor.isEmFuncionamento()) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    monitor.setChave(true);
-                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                    monitor.setChave(false);
-                }
-            } else {
-                displayInput.setText("Elevador em andamento!");
-            }
-        });
+        chave.addItemListener(
+                (ItemEvent e) -> {
+                    /* CÓDIGO DO BOTÃO TOGGLE DA CHAVE */
+                    if (!monitor.isEmFuncionamento()) {
+                        if (e.getStateChange() == ItemEvent.SELECTED) {
+                            monitor.setChave(true);
+                        } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                            monitor.setChave(false);
+                            semaforoBotoneira.release();
+                        }
+                    } else {
+                        displayInput.setText("Elevador a funcionar!\n");
+                    }
+                    monitor.printWarning("Estado_Atual_Chave: ", true);
+                    if (monitor.isChaveAcionada()) {
+                        monitor.printWarning("[Acionado]", true);
+                    } else {
+                        monitor.printWarning("[Desativado]", true);
+                    }
+                });
         botoesEspeciais.add(chave);
 
         //mostra os botoes introduzidos
         JPanel inputsPanel = new JPanel();
-        JLabel inputsLabel = new JLabel("DISPLAY:");
-        displayInput = new JTextField();
-        displayInput.setText(monitor.getInput());
-        displayInput.setPreferredSize(new Dimension(200, 100));
+        JLabel inputsLabel = new JLabel("{DISPLAY}");
+        displayInput = new JTextArea();
+        displayInput.setEditable(false);
+        displayInput.setPreferredSize(new Dimension(100, 75));
+        JScrollPane scrollPane = new JScrollPane(displayInput);
         inputsPanel.add(inputsLabel);
-        inputsPanel.add(displayInput);
+        inputsPanel.add(scrollPane);
 
         //botão para sinalizar o fecho o processo
         JButton exit = new JButton("EXIT");
@@ -167,10 +237,12 @@ public class Botoneira extends Thread {
             Thread[] tarray = new Thread[Thread.activeCount()];
             Thread.enumerate(tarray);
             int i = 0;
-            while (!tarray[i].getName().equals("[Thread_ControloElevador]")) {
+            while (i < Thread.activeCount() && !tarray[i].getName().equals("[Thread_ControloElevador]")) {
                 i++;
             }
-            tarray[i].interrupt();
+            if (i < Thread.activeCount()) {
+                tarray[i].interrupt();
+            }
         });
 
         //adição dos paineis anteriores à frame principal
@@ -181,17 +253,5 @@ public class Botoneira extends Thread {
 
         guiFrame.pack();
         guiFrame.setVisible(true);
-
-        /*
-            //mostra erros eventuais e outros avisos 
-            //(isto secalhar é melhor ficar na janela principal)
-            JPanel avisosPanel = new JPanel();
-            JLabel avisosLabel = new JLabel("AVISOS: ");
-            JTextArea avisos = new JTextArea();
-            avisos.setAutoscrolls(true);
-            avisos.setPreferredSize(new Dimension(200, 200));
-            avisosPanel.add(avisosLabel);
-            avisosPanel.add(avisos);
-         */
     }
 }
