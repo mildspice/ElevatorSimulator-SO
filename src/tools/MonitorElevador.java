@@ -57,7 +57,7 @@ public class MonitorElevador {
     -> piso = indice do array + 1,
         ex. botoesPisos[2] = "PISO3", botoesPisos[0] = "PISO1"
      */
-    private final String[] botoesPisos = new String[NUM_PISOS];
+    private String[] botoesPisos;
     //acabei por colocar as portas como tu (Rodrigo) tinhas inicialmente
     //(como boolean) true - A, false - F.
     private boolean doorButton;
@@ -71,6 +71,7 @@ public class MonitorElevador {
 
     //variáveis do log
     private double tempoExec;
+    private int vezesExecutado=0;
 
     /**
      * Construtor do objeto partilhado.
@@ -81,10 +82,10 @@ public class MonitorElevador {
     public MonitorElevador(Semaphore exclusaoMutua) {
         //isto está aqui porque estive a testar o programa
         //depois escreve em comentários como se escreve e onde se pôe o file properties
-        for (int i = 0; i < this.botoesPisos.length; i++) {
+       /* for (int i = 0; i < this.botoesPisos.length; i++) {
             this.botoesPisos[i] = "PISO" + (i + 1);
-        }
-        //setDefinitions();
+        } */
+        setDefinitions();
         this.semaforoExclusaoMutua = exclusaoMutua;
     }
 
@@ -441,6 +442,12 @@ public class MonitorElevador {
         this.tempoExec = tempoExec;
     }
 
+
+    /** Escreve para um ficheiro de Log. Este tipos de ficheiros é mesmo do Java e escreverá logo de uma maneira predefinida.
+     * @param thread passa para o ficheiro a Thread que criou o log
+     * @param pisoInicial passa para o ficheiro o piso inicial do deslocamento
+     * @param pisoFinal passa para o ficheiro o destino do deslocamento.
+     */
     public synchronized void writeLog(Thread thread, int pisoInicial, int pisoFinal) {
 
         Logger logger = Logger.getLogger("ElevatorLog");
@@ -448,7 +455,7 @@ public class MonitorElevador {
 
         try {
 
-            fh = new FileHandler("ElevatorLog.log");
+            fh = new FileHandler("ElevatorLog.log", true);
             logger.addHandler(fh);
             SimpleFormatter simpleFormatter = new SimpleFormatter();
             fh.setFormatter(simpleFormatter);
@@ -469,7 +476,46 @@ public class MonitorElevador {
 
     }
 
-    public synchronized void setDefinitions() {
+
+    /**
+     * Incrementa na varíavel o número de vezes que foi executado
+     */
+    public void usingCounter(){
+
+        vezesExecutado++;
+
+    }
+
+    /**
+     * Cria um relatório geral quando se fecha o programa
+     */
+    public void reportGeneration(){
+
+        Logger logger = Logger.getLogger("GeneralExecutionLog");
+        FileHandler fh;
+
+        try {
+
+            fh = new FileHandler("GeneralExecutionLog.log", true);
+            logger.addHandler(fh);
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            fh.setFormatter(simpleFormatter);
+            //Que mais colocar aqui? LOL
+            logger.info("Número de Vezes Executado nesta sessão: "+vezesExecutado);
+
+        } catch (IOException ex) {
+
+        }
+
+
+    }
+
+    /**
+     * Lê o ficheiro de configurações, procura pelas propriedades definidas, nomeadamente a carga e o número de pisos, e coloca nas variáveis.
+     *
+     *
+     */
+    private void setDefinitions() {
 
         /**
          * EU ESTIVE A TESTAR ESTE MÉTODO E AINDA NAO FUNCIONA DIREITO!
@@ -497,7 +543,7 @@ public class MonitorElevador {
                 e.printStackTrace();
             }
             NUM_PISOS = Integer.parseInt(p.getProperty("pisos"));
-            this.botoesPisos = new String[NUM_PISOS];
+            botoesPisos = new String[NUM_PISOS];
             for (int i = 0; i < this.botoesPisos.length; i++) {
                 this.botoesPisos[i] = "PISO" + i;
             }

@@ -243,6 +243,9 @@ public class Botoneira extends Thread {
             if (i < Thread.activeCount()) {
                 tarray[i].interrupt();
             }
+
+            monitor.reportGeneration();
+            System.exit(0);
         });
 
         //adição dos paineis anteriores à frame principal

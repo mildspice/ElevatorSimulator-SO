@@ -21,8 +21,8 @@ import tools.MonitorElevador;
 public class MainControloElevador implements Runnable {
 
     /*
-     * NOTA (antiga, mas serve como 'memo'): 
-     * os pisos estão mais ligados à botoneira. 
+     * NOTA (antiga, mas serve como 'memo'):
+     * os pisos estão mais ligados à botoneira.
      * A informação sobre os pisos está no MonitorElevador porque
      * é/pode ser usada por várias threads (este é o tipo de coisas que temos
      * que dizer no relatório e na defesa do projeto :V)
@@ -43,14 +43,14 @@ public class MainControloElevador implements Runnable {
     /**
      * Construtor para a thread.
      *
-     * @param semaforoMotor semaforo relacionado ao funcionamento do elevador.
-     * @param semaforoPortas semaforo relacionado ao funcionamento das portas.
+     * @param semaforoMotor     semaforo relacionado ao funcionamento do elevador.
+     * @param semaforoPortas    semaforo relacionado ao funcionamento das portas.
      * @param semaforoBotoneira semaforo relacionado a funções especiais da
-     * botoneira
-     * @param monitor objeto partilhado
-     * @param motor instância da thread relativa ao motor
-     * @param portas instância da thread relativa às portas
-     * @param botoneira instância da thread relativa à botoneira
+     *                          botoneira
+     * @param monitor           objeto partilhado
+     * @param motor             instância da thread relativa ao motor
+     * @param portas            instância da thread relativa às portas
+     * @param botoneira         instância da thread relativa à botoneira
      */
     public MainControloElevador(
             Semaphore semaforoMotor, Semaphore semaforoPortas, Semaphore semaforoBotoneira,
@@ -238,5 +238,4 @@ public class MainControloElevador implements Runnable {
         } catch (InterruptedException ex) {
         }
     }
-
 }
