@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
 import enums.EstadosMotor;
+import java.io.IOException;
 import tools.MonitorElevador;
 
 /**
@@ -43,14 +44,14 @@ public class MainControloElevador implements Runnable {
     /**
      * Construtor para a thread.
      *
-     * @param semaforoMotor     semaforo relacionado ao funcionamento do elevador.
-     * @param semaforoPortas    semaforo relacionado ao funcionamento das portas.
+     * @param semaforoMotor semaforo relacionado ao funcionamento do elevador.
+     * @param semaforoPortas semaforo relacionado ao funcionamento das portas.
      * @param semaforoBotoneira semaforo relacionado a funções especiais da
-     *                          botoneira
-     * @param monitor           objeto partilhado
-     * @param motor             instância da thread relativa ao motor
-     * @param portas            instância da thread relativa às portas
-     * @param botoneira         instância da thread relativa à botoneira
+     * botoneira
+     * @param monitor objeto partilhado
+     * @param motor instância da thread relativa ao motor
+     * @param portas instância da thread relativa às portas
+     * @param botoneira instância da thread relativa à botoneira
      */
     public MainControloElevador(
             Semaphore semaforoMotor, Semaphore semaforoPortas, Semaphore semaforoBotoneira,
@@ -157,9 +158,16 @@ public class MainControloElevador implements Runnable {
                 }
 
             }
-            //a thread só acaba quando for interrompida
-            //logo a ultima parte do codigo faz-se no catch
-            //no entanto, fica aqui tambem em caso de haver problemas ...
+            /*
+            A thread só acaba quando for interrompida.
+            No entanto, o código tanto pode finalizar na catch clause como depois
+            do ciclo while (aqui), dependendo do estado "funcional" da thread quando
+            é interrompida (ex.: Se a thread estiver "à espera num semáforo", ativa
+            a exception; se estiver a realizar alguma operação, vai simplesmente
+            continuar até que saia do ciclo, ou chegue a alguma operação que invoque
+            a exceção). Por isso, o código de interromper as outras
+            thread está repetido. O mesmo acontece nas outras threads ...
+            */
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...");
             monitor.printWarning("GoOdByE!", false);
@@ -168,13 +176,21 @@ public class MainControloElevador implements Runnable {
             portas.interrupt();
             botoneira.interrupt();
             this.janelaPrincipal.dispose();
-
+            
         } catch (IllegalThreadStateException ex) {
+            /*
+            esta catch clause acontece quando é feito "<thread>.start()" numa
+            thread que já se encontra a funcionar. (isto aconteceu-me bastante,
+            na minha inocente distração, equanto fazia algum código...)
+            Já não serve de nada, mas fica aqui na mesma.
+            */
             Thread.currentThread().interrupt();
             Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
+            
         } catch (InterruptedException ex) {
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...\n");
+            monitor.printWarning("GoOdByE!", false);
             motor.interrupt();
             portas.interrupt();
             botoneira.interrupt();
@@ -210,32 +226,33 @@ public class MainControloElevador implements Runnable {
         Semaphore semaforoPortas = new Semaphore(0);
         Semaphore semaforoBotoneira = new Semaphore(0);
 
-        //sharedobject e threads secundárias
-        MonitorElevador monitor = new MonitorElevador(exclusaoMutua);
-        Portas portas = new Portas(semaforoPortas, monitor);
-        portas.setName("[Thread_PortasElevador]");
-        Motor motor = new Motor(semaforoMotor, monitor);
-        motor.setName("[Thread_MotorElevador]");
-        Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor, semaforoPortas);
-        motor.setName("[Thread_Botoneira]");
-
-        //thread principal
-        Thread controloElevador = new Thread(
-                new MainControloElevador(semaforoMotor, semaforoPortas, semaforoBotoneira,
-                        monitor, motor, portas, botoneira), "[Thread_ControloElevador]");
-        controloElevador.start();
-
         try {
-            controloElevador.join();
-            Thread[] tarray = new Thread[Thread.activeCount()];
-            if (Thread.enumerate(tarray) < tarray.length) {
-                System.out.println("Couldn't terminate all threads!");
+            //objeto partilhado entre todas as threads
+            MonitorElevador monitor = new MonitorElevador(exclusaoMutua);
+
+            //threads ...
+            Portas portas = new Portas(semaforoPortas, monitor);
+            portas.setName("[Thread_PortasElevador]");
+            Motor motor = new Motor(semaforoMotor, monitor);
+            motor.setName("[Thread_MotorElevador]");
+            Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor, semaforoPortas);
+            motor.setName("[Thread_Botoneira]");
+
+            //thread principal
+            Thread controloElevador = new Thread(
+                    new MainControloElevador(semaforoMotor, semaforoPortas, semaforoBotoneira,
+                            monitor, motor, portas, botoneira), "[Thread_ControloElevador]");
+            controloElevador.start();
+
+            try {
+                controloElevador.join();
+
+                System.out.println("\n\t* Elevador Desativado! *");
+            } catch (InterruptedException ex) {
             }
-            for (Thread t : tarray) {
-                t.interrupt();
-            }
-            System.out.println("\t* Elevador Desativado! *");
-        } catch (InterruptedException ex) {
+        } catch (IOException ex) {
+            System.err.println("Erro na leitura do ficheiro de configurações!!");
+            Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

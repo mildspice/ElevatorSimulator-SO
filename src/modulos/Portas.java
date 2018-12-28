@@ -101,7 +101,7 @@ public class Portas extends Thread {
                 displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
             }
 
-            //this.guiFrame.dispose();
+            this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }

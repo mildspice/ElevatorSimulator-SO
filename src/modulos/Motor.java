@@ -74,7 +74,7 @@ public class Motor extends Thread {
             monitor.setDirecaoMotor(EstadosMotor.STOPPED);
             displayDirecao.setText(monitor.getDirecaoMotor().message());
             displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
-
+            
             while (!Thread.interrupted()) {
                 /**
                  * Quando o main lança a thread do motor, este fica à espera de
@@ -137,7 +137,8 @@ public class Motor extends Thread {
                 displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
                 monitor.setFlagFuncionamento(false);
             }
-            //this.guiFrame.dispose();
+            
+            this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }

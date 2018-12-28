@@ -78,7 +78,7 @@ public class Botoneira extends Thread {
                 temp.acquire();
 
             }
-            //this.guiFrame.dispose();
+            this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }
@@ -232,21 +232,21 @@ public class Botoneira extends Thread {
         //botão para sinalizar o fecho o processo
         JButton exit = new JButton("EXIT");
         exit.setPreferredSize(new Dimension(60, 100));
-        exit.addActionListener((ActionEvent event) -> {
-            //monitor.setInput("EXIT");
-            Thread[] tarray = new Thread[Thread.activeCount()];
-            Thread.enumerate(tarray);
-            int i = 0;
-            while (i < Thread.activeCount() && !tarray[i].getName().equals("[Thread_ControloElevador]")) {
-                i++;
-            }
-            if (i < Thread.activeCount()) {
-                tarray[i].interrupt();
-            }
+        exit.addActionListener(
+                (ActionEvent event) -> {
+                    displayInput.setText("EXIT");
+                    Thread[] tarray = new Thread[Thread.activeCount()];
+                    Thread.enumerate(tarray);
+                    int i = 0;
+                    while (i < Thread.activeCount() && !tarray[i].getName().equals("[Thread_ControloElevador]")) {
+                        i++;
+                    }
+                    if (i < Thread.activeCount()) {
+                        tarray[i].interrupt();
+                    }
 
-            monitor.reportGeneration();
-            System.exit(0);
-        });
+                    monitor.reportGeneration();
+                });
 
         //adição dos paineis anteriores à frame principal
         guiFrame.add(botoesPisos, BorderLayout.NORTH);

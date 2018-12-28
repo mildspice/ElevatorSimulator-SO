@@ -48,7 +48,7 @@ public class MonitorElevador {
     protected Semaphore semaforoExclusaoMutua;
     private boolean flagFloorReached = true;
     private boolean flagFuncionamento = false;
-    private int NUM_PISOS = 4;
+    private int NUM_PISOS;
     private int CARGA_KG;
     private int pisoAtual = 1;
     //variâveis relacionadas ao funcionamento da Botoneira
@@ -71,18 +71,18 @@ public class MonitorElevador {
 
     //variáveis do log
     private double tempoExec;
-    private int vezesExecutado=0;
+    private int vezesExecutado = 0;
 
     /**
      * Construtor do objeto partilhado.
      *
      * @param exclusaoMutua semaforo para o controlo da realização de operações
      * "sensíveis"
+     * @throws java.io.IOException sinaliza se o ficheiro de configurações não
+     * foi lido
      */
-    public MonitorElevador(Semaphore exclusaoMutua) {
-        //isto está aqui porque estive a testar o programa
-        //depois escreve em comentários como se escreve e onde se pôe o file properties
-       /* for (int i = 0; i < this.botoesPisos.length; i++) {
+    public MonitorElevador(Semaphore exclusaoMutua) throws IOException {
+        /* for (int i = 0; i < this.botoesPisos.length; i++) {
             this.botoesPisos[i] = "PISO" + (i + 1);
         } */
         setDefinitions();
@@ -432,8 +432,6 @@ public class MonitorElevador {
         return janela;
     }
 
-    //-------------------------------------------------------------------
-    //RODRIGO TIME
     public double getTempoExec() {
         return tempoExec;
     }
@@ -442,8 +440,10 @@ public class MonitorElevador {
         this.tempoExec = tempoExec;
     }
 
-
-    /** Escreve para um ficheiro de Log. Este tipos de ficheiros é mesmo do Java e escreverá logo de uma maneira predefinida.
+    /**
+     * Escreve para um ficheiro de Log. Este tipos de ficheiros é mesmo do Java
+     * e escreverá logo de uma maneira predefinida.
+     *
      * @param thread passa para o ficheiro a Thread que criou o log
      * @param pisoInicial passa para o ficheiro o piso inicial do deslocamento
      * @param pisoFinal passa para o ficheiro o destino do deslocamento.
@@ -476,20 +476,19 @@ public class MonitorElevador {
 
     }
 
-
     /**
      * Incrementa na varíavel o número de vezes que foi executado
      */
-    public void usingCounter(){
-
+    public void usingCounter() {
         vezesExecutado++;
-
     }
 
     /**
      * Cria um relatório geral quando se fecha o programa
+     * 
+     * (tu estás a criar 2 ficheiros de log diferentes!?)
      */
-    public void reportGeneration(){
+    public void reportGeneration() {
 
         Logger logger = Logger.getLogger("GeneralExecutionLog");
         FileHandler fh;
@@ -501,70 +500,51 @@ public class MonitorElevador {
             SimpleFormatter simpleFormatter = new SimpleFormatter();
             fh.setFormatter(simpleFormatter);
             //Que mais colocar aqui? LOL
-            logger.info("Número de Vezes Executado nesta sessão: "+vezesExecutado);
+            /*
+            tu estás a guardar uma variável de tempo de execução, poe aqui tambem.
+            podes guardar o número de vezes que as portas foram usadas.
+            
+            podes por coisas mais engraçadas tipo, em que direcao o motor se deslocou
+            mais vezes, quantas vezes o utilizador se tentou suicidar (experimenta
+            por o elevador a funcionar, pará-lo manualmente e abre as portas. lê a mensagem
+            que vai aparecer na janela principal...)
+            
+            o problema disto é que secalhar vai ser preciso criar muitas variaveis.
+            mas acho que nao é problema. temos isto muito bem organizado.
+            */
+            logger.info("Número de Vezes Executado nesta sessão: " + vezesExecutado);
 
         } catch (IOException ex) {
 
         }
 
-
     }
 
     /**
-     * Lê o ficheiro de configurações, procura pelas propriedades definidas, nomeadamente a carga e o número de pisos, e coloca nas variáveis.
-     *
-     *
+     * Lê o ficheiro de configurações, procura pelas propriedades definidas,
+     * nomeadamente a carga e o número de pisos, e coloca nas variáveis.
      */
-    private void setDefinitions() {
+    private void setDefinitions() throws IOException {
 
-        /**
-         * EU ESTIVE A TESTAR ESTE MÉTODO E AINDA NAO FUNCIONA DIREITO!
-         *
-         * até posso ter sido eu que criei o ficheiro mal.
-         *
-         * uma lembraça: POR FAVOR, começa a comentar o código que fazes.
+        /*
+        Alterei a forma como as exceptions são tratadas, não acho que a forma como
+        estava fosse a melhor. Assim evita logo no inicio que código corra se não
+        conseguir ler o ficheiro!
+        
+        Eu parti do principio que este método já está finalizado! Se apaguei alguma
+        coisa que não devia, sorry. podes sempre ir ver os commits no git.
          */
         File deffile = new File("definicoes.properties");
-        boolean checker = false;
 
-        try {
-            FileReader fr = new FileReader(deffile);
-            checker = true;
-        } catch (FileNotFoundException fio) {
-            System.out.print("File not found");
+        Properties p = new Properties();
+        p.load(new FileInputStream(deffile));
 
+        NUM_PISOS = Integer.parseInt(p.getProperty("pisos"));
+        botoesPisos = new String[NUM_PISOS];
+        for (int i = 0; i < this.botoesPisos.length; i++) {
+            this.botoesPisos[i] = "PISO" + (i+1);
         }
-
-        if (checker == true) {
-            Properties p = new Properties();
-            try {
-                p.load(new FileInputStream(deffile));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            NUM_PISOS = Integer.parseInt(p.getProperty("pisos"));
-            botoesPisos = new String[NUM_PISOS];
-            for (int i = 0; i < this.botoesPisos.length; i++) {
-                this.botoesPisos[i] = "PISO" + i;
-            }
-            CARGA_KG = Integer.parseInt(p.getProperty("carga"));
-        }
-        /*  try {
-            FileReader fileReader = new FileReader(deffile);
-            BufferedReader br = new BufferedReader(fileReader);
-            String line;
-            while((line=br.readLine())!=null){
-
-
-
-            }
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } */
-
+        CARGA_KG = Integer.parseInt(p.getProperty("carga"));
     }
 
 }
