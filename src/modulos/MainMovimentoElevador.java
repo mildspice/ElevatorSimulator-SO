@@ -60,8 +60,7 @@ public class MainMovimentoElevador extends Thread {
      */
     @Override
     public void run() {
-
-        //nome da thread (caso dê jeito usar, senao pode-se tirar ...)
+        //variável para o cálculo do tempo de execução
         double tempoInicial= System.currentTimeMillis();
         String threadName = "[Thread_RunningElevator]";
         Thread.currentThread().setName(threadName);
@@ -72,6 +71,7 @@ public class MainMovimentoElevador extends Thread {
             //Thread.sleep(monitor.MOVEMENT_WAITING_TIME); 
             //agora fica só a esperar no motor.
             monitor.espera();
+            //variável para o log
             int pisoInicial=monitor.getPisoAtual();
             /**
              * cada iteração do ciclo representa o movimento do elevador entre

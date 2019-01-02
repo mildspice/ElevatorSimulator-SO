@@ -147,9 +147,8 @@ public class MainControloElevador implements Runnable {
                             semaforoPortas.release();
                             //esperar pela chegada ao destino
                             workingElevator.join();
-                            //(esperar pelo código)
-                            while (monitor.isEmFuncionamento()) {
-                            }
+                            //esperar pelo motor
+                            monitor.espera();
                             Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
                             //sinalizar as portas novamente
                             semaforoPortas.release();
@@ -171,7 +170,6 @@ public class MainControloElevador implements Runnable {
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...");
             monitor.printWarning("GoOdByE!", false);
-            Thread.sleep(1000 * 3);
             motor.interrupt();
             portas.interrupt();
             botoneira.interrupt();
@@ -229,14 +227,17 @@ public class MainControloElevador implements Runnable {
         try {
             //objeto partilhado entre todas as threads
             MonitorElevador monitor = new MonitorElevador(exclusaoMutua);
-
+            Thread[] threads = new Thread[3];
             //threads ...
             Portas portas = new Portas(semaforoPortas, monitor);
             portas.setName("[Thread_PortasElevador]");
+            threads[0] = portas;
             Motor motor = new Motor(semaforoMotor, monitor);
             motor.setName("[Thread_MotorElevador]");
+            threads[1] = motor;
             Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor, semaforoPortas);
             motor.setName("[Thread_Botoneira]");
+            threads[2] = botoneira;
 
             //thread principal
             Thread controloElevador = new Thread(
@@ -246,6 +247,9 @@ public class MainControloElevador implements Runnable {
 
             try {
                 controloElevador.join();
+                for ( Thread th : threads) {
+                    th.join();
+                }
 
                 System.out.println("\n\t* Elevador Desativado! *");
             } catch (InterruptedException ex) {

@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -61,40 +62,34 @@ public class Portas extends Thread {
                 //as portas funcionam só quando é sinalizado
                 semaforoPortas.acquire();
 
-                //verificar a chave
-                if (monitor.isChaveAcionada()) {
-                    monitor.printWarning("Chave Acionada!\n"
-                            + "Movimento das Portas Impedido.", true);
 
-                } else {
-                    /*
+                /*
                     NOTA: quando o botao S é utilizado, o elevador está parado
                     mas pode não estar num piso, daí a opção alternativa nas condições.
                     
                     para que seja possível utilizar os botoes das portas é preciso
                     que o elevador esteja completamente parado!
-                     */
-                    if (!monitor.isEmFuncionamento() && monitor.isFloorReached()
-                            || monitor.getBotaoPortas() == true && !monitor.isEmFuncionamento()) {
-                        //esta condição tem de ser repetido devido ser possível alterar
-                        //manualmente o estado das portas quando isFloorReached é true
-                        if (monitor.getBotaoPortas() == false) {
-                            monitor.setEstadoPortas(EstadosPortas.FECHADO);
-                        } else {
-                            monitor.setEstadoPortas(EstadosPortas.ABERTO);
-                        }
-                        //quando o elevador foi parado manualmente e o utilizador
-                        //decide abrir as portas
-                        if (!monitor.isFloorReached()) {
-                            monitor.printWarning("\nWARNING - "
-                                    + "O elevador nao se encontra num piso!!"
-                                    + "Pretende cometer suicidio?", true);
-                        }
-
-                    } else if (monitor.isEmFuncionamento()
-                            || monitor.getBotaoPortas() == false && !monitor.isEmFuncionamento()) {
+                 */
+                if (!monitor.isEmFuncionamento() && monitor.isFloorReached()
+                        || monitor.getBotaoPortas() == true && !monitor.isEmFuncionamento()) {
+                    //esta condição tem de ser repetido devido ser possível alterar
+                    //manualmente o estado das portas quando isFloorReached é true
+                    if (monitor.getBotaoPortas() == false) {
                         monitor.setEstadoPortas(EstadosPortas.FECHADO);
+                    } else {
+                        monitor.setEstadoPortas(EstadosPortas.ABERTO);
                     }
+                    //quando o elevador foi parado manualmente e o utilizador
+                    //decide abrir as portas
+                    if (!monitor.isFloorReached()) {
+                        monitor.printWarning("\nWARNING - "
+                                + "O elevador nao se encontra num piso!?! \n"
+                                + "Voce pode cair!! Ai meu deus ...!", true);
+                    }
+
+                } else if (monitor.isEmFuncionamento()
+                        || monitor.getBotaoPortas() == false && !monitor.isEmFuncionamento()) {
+                    monitor.setEstadoPortas(EstadosPortas.FECHADO);
                 }
 
                 displayEstado.setText(monitor.getEstadoPortas().message());
@@ -115,7 +110,7 @@ public class Portas extends Thread {
         this.guiFrame = new JFrame();
 
         guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        guiFrame.setTitle("[ Portas ]");
+        guiFrame.setTitle("[ Display Portas ]");
         guiFrame.setLocationByPlatform(true);
 
         JPanel estadoPortas = new JPanel();
@@ -130,8 +125,9 @@ public class Portas extends Thread {
         JPanel pretty = new JPanel();
         this.displayPretty = new JTextArea(23, 15);
         displayPretty.setEditable(false);
-        this.displayPretty.setPreferredSize(new Dimension(350, 400));
+        displayPretty.setFont(new Font("monospaced", Font.PLAIN, 12));
         JScrollPane scrollPane = new JScrollPane(displayPretty);
+        scrollPane.setPreferredSize(new Dimension(250, 300));
         pretty.add(scrollPane);
 
         guiFrame.add(estadoPortas, BorderLayout.NORTH);

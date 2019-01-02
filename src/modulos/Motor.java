@@ -6,6 +6,7 @@ import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
@@ -60,11 +61,10 @@ public class Motor extends Thread {
      * {@code while (!this.monitor.isFloorReached()) { ...
      * if (!monitor.isEmFuncionamento()) {
      * monitor.espera();
-     * } ... }}
-     * - Este ciclo representa o motor que se mantém a funcionar até que seja
-     * sinalizado a chegada ao destino, isto é, sinalizado pelo botão específico
-     * da botoneira ("if" dentro do ciclo). No entanto, também vai imprimindo na
-     * janela uma sinalização do funcionamento do motor.
+     * } ... }} - Este ciclo representa o motor que se mantém a funcionar até
+     * que seja sinalizado a chegada ao destino, isto é, sinalizado pelo botão
+     * específico da botoneira ("if" dentro do ciclo). No entanto, também vai
+     * imprimindo na janela uma sinalização do funcionamento do motor.
      * </p>
      */
     @Override
@@ -74,7 +74,7 @@ public class Motor extends Thread {
             monitor.setDirecaoMotor(EstadosMotor.STOPPED);
             displayDirecao.setText(monitor.getDirecaoMotor().message());
             displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
-            
+
             while (!Thread.interrupted()) {
                 /**
                  * Quando o main lança a thread do motor, este fica à espera de
@@ -92,9 +92,9 @@ public class Motor extends Thread {
 
                 //tempo de espera até que o elevador comece a andar
                 Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
-                monitor.acordaTodas();
                 //sinalização
                 monitor.setFlagFuncionamento(true);
+                monitor.acordaTodas();
 
                 /**
                  * Este ciclo representa o motor que se mantém a funcionar até
@@ -136,8 +136,9 @@ public class Motor extends Thread {
                 displayDirecao.setText(monitor.getDirecaoMotor().message());
                 displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
                 monitor.setFlagFuncionamento(false);
+                monitor.acordaTodas();
             }
-            
+
             this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
@@ -152,7 +153,7 @@ public class Motor extends Thread {
         this.guiFrame = new JFrame();
 
         guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        guiFrame.setTitle("[ Motor ]");
+        guiFrame.setTitle("[ Display Motor ]");
         /**
          * Design Note: An alternative option for setting the size of the window
          * is to call the pack() method of the JFrame class. This method
@@ -175,8 +176,9 @@ public class Motor extends Thread {
         JPanel effects = new JPanel();
         this.displayEffects = new JTextArea();
         displayEffects.setEditable(false);
-        this.displayEffects.setPreferredSize(new Dimension(350, 300));
+        displayEffects.setFont(new Font("monospaced", Font.PLAIN, 12));
         JScrollPane scrollPane = new JScrollPane(displayEffects);
+        scrollPane.setPreferredSize(new Dimension(250, 300));
         effects.add(scrollPane);
 
         guiFrame.add(estadoMotor, BorderLayout.NORTH);

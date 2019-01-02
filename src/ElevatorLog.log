@@ -1,2 +1,20 @@
-dez 28, 2018 1:30:21 AM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 28.087
+jan 02, 2019 5:40:10 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.009
+jan 02, 2019 5:52:55 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.011
+jan 02, 2019 5:53:17 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 4Peso transportado: 320 Tempo de trabalho: 7.005
+jan 02, 2019 5:54:59 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 4 Piso Final: 1Peso transportado: 320 Tempo de trabalho: 101.385
+jan 02, 2019 5:55:14 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.008
+jan 02, 2019 5:55:22 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 2Peso transportado: 320 Tempo de trabalho: 7.004
+jan 02, 2019 5:55:46 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 2 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 7.003
+jan 02, 2019 6:31:20 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3 Peso transportado: 0 Tempo de trabalho: 13.011
+jan 02, 2019 6:31:28 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 4 Peso transportado: 0 Tempo de trabalho: 7.006
+jan 02, 2019 6:31:48 PM tools.MonitorElevador writeLog
+INFO: [Thread_RunningElevator] Piso Inicial: 4 Piso Final: 1 Peso transportado: 0 Tempo de trabalho: 19.009
