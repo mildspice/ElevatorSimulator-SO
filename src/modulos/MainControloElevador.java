@@ -56,6 +56,7 @@ public class MainControloElevador implements Runnable {
     public MainControloElevador(
             Semaphore semaforoMotor, Semaphore semaforoPortas, Semaphore semaforoBotoneira,
             MonitorElevador monitor, Motor motor, Portas portas, Botoneira botoneira) {
+        double stime=System.currentTimeMillis();
         this.semaforoMotor = semaforoMotor;
         this.semaforoPortas = semaforoPortas;
         this.semaforoBotoneira = semaforoBotoneira;
@@ -64,6 +65,7 @@ public class MainControloElevador implements Runnable {
         this.portas = portas;
         this.botoneira = botoneira;
         this.monitor = monitor;
+        monitor.setStartime(stime);
     }
 
     /**

@@ -105,6 +105,11 @@ public class Botoneira extends Thread {
         guiFrame.setLocationByPlatform(true);
 
         /**
+         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
+         */
+        guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        /**
          * Criação do painel que vai ter os botoes dos pisos
          */
         this.botoesPisos = new JPanel();
@@ -251,6 +256,7 @@ public class Botoneira extends Thread {
                     }
                     if (i < Thread.activeCount()) {
                         tarray[i].interrupt();
+                        monitor.setEndtime(System.currentTimeMillis());
                         monitor.reportGeneration();
                     } else {
                         System.err.println("AVISO: \n"

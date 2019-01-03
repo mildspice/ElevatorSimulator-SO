@@ -164,6 +164,11 @@ public class Motor extends Thread {
         //guiFrame.setSize(200, 300);
         guiFrame.setLocationByPlatform(true);
 
+        /**
+         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
+         */
+        guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
         JPanel estadoMotor = new JPanel();
         JLabel label = new JLabel("{Direcao Motor}");
         this.displayDirecao = new JTextField();
@@ -186,5 +191,6 @@ public class Motor extends Thread {
 
         guiFrame.pack();
         guiFrame.setVisible(true);
+
     }
 }

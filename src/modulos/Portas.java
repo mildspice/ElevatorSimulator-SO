@@ -112,6 +112,10 @@ public class Portas extends Thread {
         guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         guiFrame.setTitle("[ Display Portas ]");
         guiFrame.setLocationByPlatform(true);
+        /**
+         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
+         */
+        guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel estadoPortas = new JPanel();
         JLabel label = new JLabel("{Estado Portas}");

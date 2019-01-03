@@ -55,6 +55,9 @@ public class MonitorElevador {
     //valor a ser colocado através do ficheiro "propriedades"
     private int CARGA_TOTAL;
     private int cargaAtual = 0;
+    private int cargaTransportadatotal=0;
+    private double startime;
+    private double endtime;
     //variâveis relacionadas ao funcionamento da Botoneira
     /*
     secalhar há uma forma melhor de fazer isto mas assim também funciona:
@@ -75,6 +78,7 @@ public class MonitorElevador {
     private EstadosPortas estadoPortas = EstadosPortas.ABERTO;
 
     //variáveis do log
+    private Logger logger;
     private double tempoExec;
     private int vezesExecutado = 0;
 
@@ -87,9 +91,8 @@ public class MonitorElevador {
      * foi lido
      */
     public MonitorElevador(Semaphore exclusaoMutua) throws IOException {
-        /* for (int i = 0; i < this.botoesPisos.length; i++) {
-            this.botoesPisos[i] = "PISO" + (i + 1);
-        } */
+        logger = Logger.getLogger("ElevatorLog");
+      //  startime=System.currentTimeMillis();
         setDefinitions();
         this.semaforoExclusaoMutua = exclusaoMutua;
     }
@@ -411,6 +414,11 @@ public class MonitorElevador {
          */
         janela.setLocationByPlatform(true);
 
+        /**
+         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
+         */
+        janela.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
         JPanel displayPanel = new JPanel();
         displayPanel.setLayout(new GridLayout(1, 3));
         JLabel prettyLabel = new JLabel("[Current Floor Display]");
@@ -448,7 +456,6 @@ public class MonitorElevador {
                     displayAvisos.setText("");
                 });
         floorPanel.add(apagarAvisos);
-
         //mostra erros eventuais e outros avisos 
         //(isto secalhar é melhor ficar na janela principal)
         JPanel avisosPanel = new JPanel();
@@ -502,7 +509,6 @@ public class MonitorElevador {
      */
     public synchronized void writeLog(Thread thread, int pisoInicial, int pisoFinal) {
 
-        Logger logger = Logger.getLogger("ElevatorLog");
         FileHandler fh;
 
         try {
@@ -517,12 +523,17 @@ public class MonitorElevador {
                     + " Piso Final: " + pisoFinal + "Peso transportado: " + CARGA_KG
                     + " Tempo de trabalho: " + getTempoExec());
              */
+            this.semaforoExclusaoMutua.acquire();
             logger.log(Level.INFO, "{0} Piso Inicial: {1} Piso Final: "
                     + "{2} Peso transportado: {3} Tempo de trabalho: {4}",
                     new Object[]{thread.getName(), pisoInicial, pisoFinal,
                         cargaAtual, getTempoExec()});
+            fh.close();
+            this.semaforoExclusaoMutua.release();
 
         } catch (IOException ex) {
+
+        } catch (InterruptedException e) {
 
         }
 
@@ -534,6 +545,11 @@ public class MonitorElevador {
     public void usingCounter() {
         vezesExecutado++;
     }
+
+    /**
+     * Calcula o peso total que vai sendo utilizado no elevador.
+     */
+    public void pesoTotal(){ cargaTransportadatotal=cargaTransportadatotal+cargaAtual; }
 
     /**
      * Cria um relatório geral quando se fecha o programa
@@ -564,7 +580,12 @@ public class MonitorElevador {
             o problema disto é que secalhar vai ser preciso criar muitas variaveis.
             mas acho que nao é problema. temos isto muito bem organizado.
              */
-            logger.info("Número de Vezes Executado nesta sessão: " + vezesExecutado);
+            //logger.info("Número de Vezes Executado nesta sessão: " + vezesExecutado);
+
+            logger.log(Level.INFO,  "Número de vezes executado: {0} Total de peso transportado: "
+                            + "{1} Tempo total de execução: {2}",
+                    new Object[]{vezesExecutado, cargaAtual, getFinalTime()});
+            fh.close();
 
         } catch (IOException ex) {
 
@@ -599,4 +620,15 @@ public class MonitorElevador {
         CARGA_TOTAL = Integer.parseInt(p.getProperty("carga"));
     }
 
+    public double getFinalTime() {
+        return endtime-startime;
+    }
+
+    public void setEndtime(double endtime) {
+        this.endtime = endtime;
+    }
+
+    public void setStartime(double startime) {
+        this.startime = startime;
+    }
 }

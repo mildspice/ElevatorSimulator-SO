@@ -14,6 +14,7 @@ import tools.MonitorElevador;
  */
 public class MainMovimentoElevador extends Thread {
 
+
     //em segundos
     private final int FlOOR_WAIT_TIME_MS = 5;
     //número de pisos a deslocar ...
@@ -64,6 +65,8 @@ public class MainMovimentoElevador extends Thread {
         double tempoInicial= System.currentTimeMillis();
         String threadName = "[Thread_RunningElevator]";
         Thread.currentThread().setName(threadName);
+        //variável para o log
+        int pisoInicial=monitor.getPisoAtual();
         try {
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(false);
@@ -71,8 +74,7 @@ public class MainMovimentoElevador extends Thread {
             //Thread.sleep(monitor.MOVEMENT_WAITING_TIME); 
             //agora fica só a esperar no motor.
             monitor.espera();
-            //variável para o log
-            int pisoInicial=monitor.getPisoAtual();
+
             /**
              * cada iteração do ciclo representa o movimento do elevador entre
              * cada piso
@@ -118,13 +120,14 @@ public class MainMovimentoElevador extends Thread {
             monitor.displayQueue();
             monitor.displayPisoAtual();
             monitor.usingCounter();
-            monitor.writeLog(Thread.currentThread(),pisoInicial,monitor.getPisoAtual());
+            monitor.pesoTotal();
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(true);
         } catch (InterruptedException ex) {
             System.err.println("Problemas na thread: " + threadName + "\nLOG: ");
             Logger.getLogger(MainMovimentoElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
+        monitor.writeLog(Thread.currentThread(),pisoInicial,monitor.getPisoAtual());
     }
 
 }
