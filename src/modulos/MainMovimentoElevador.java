@@ -1,7 +1,5 @@
 package modulos;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import tools.MonitorElevador;
 
 /**
@@ -112,7 +110,7 @@ public class MainMovimentoElevador extends Thread {
             }
             monitor.displayQueue();
             monitor.displayPisoAtual();
-            
+
             //LOG
             monitor.counterExecucao();
             monitor.counterPesoTotal();
@@ -121,8 +119,8 @@ public class MainMovimentoElevador extends Thread {
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(true);
         } catch (InterruptedException ex) {
-            System.err.println("\t******\n"
-                    + "Deslocação parada abruptamente!! " + threadName);
+            System.out.println("\n" + threadName + "\nDeslocacaoo parada "
+                    + "abruptamente!!");
         }
     }
 

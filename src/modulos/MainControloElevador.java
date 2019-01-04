@@ -5,12 +5,8 @@ import java.util.logging.Logger;
 import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
 import enums.EstadosMotor;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.io.IOException;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import tools.MonitorElevador;
 
 /**
@@ -214,6 +210,7 @@ public class MainControloElevador implements Runnable {
             motor.interrupt();
             portas.interrupt();
             botoneira.interrupt();
+
             this.janelaPrincipal.dispose();
         }
     }
@@ -268,6 +265,17 @@ public class MainControloElevador implements Runnable {
                 double endTime = System.currentTimeMillis();
                 monitor.reportGeneration(endTime - startTime);
                 System.out.println("\n\t* Elevador Desativado! *");
+
+                /* interromper todas as threads que não tenham sido tratadas.
+                (ex.: a thread [Thread_RunningElevator] pode não ser corretamente
+                finalizada se o programa fôr parado de forma abrupta (enquanto o 
+                elevador estiver a funcionar [funcionar implica estar a decorrer
+                a deslocação entre dois pisos])*/
+                Thread[] tarray = new Thread[Thread.activeCount()];
+                Thread.enumerate(tarray);
+                for (Thread th : tarray) {
+                    th.interrupt();
+                }
             } catch (InterruptedException ex) {
             }
         } catch (IOException ex) {
