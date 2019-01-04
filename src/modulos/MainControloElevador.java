@@ -5,7 +5,12 @@ import java.util.logging.Logger;
 import java.util.concurrent.Semaphore;
 import javax.swing.JFrame;
 import enums.EstadosMotor;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.io.IOException;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import tools.MonitorElevador;
 
 /**
@@ -21,13 +26,6 @@ import tools.MonitorElevador;
  */
 public class MainControloElevador implements Runnable {
 
-    /*
-     * NOTA (antiga, mas serve como 'memo'):
-     * os pisos estão mais ligados à botoneira.
-     * A informação sobre os pisos está no MonitorElevador porque
-     * é/pode ser usada por várias threads (este é o tipo de coisas que temos
-     * que dizer no relatório e na defesa do projeto :V)
-     */
     //Objeto partilhado com as flags, 'waits' e 'notifies', ...
     protected MonitorElevador monitor;
     private JFrame janelaPrincipal;
@@ -56,7 +54,7 @@ public class MainControloElevador implements Runnable {
     public MainControloElevador(
             Semaphore semaforoMotor, Semaphore semaforoPortas, Semaphore semaforoBotoneira,
             MonitorElevador monitor, Motor motor, Portas portas, Botoneira botoneira) {
-        double stime=System.currentTimeMillis();
+
         this.semaforoMotor = semaforoMotor;
         this.semaforoPortas = semaforoPortas;
         this.semaforoBotoneira = semaforoBotoneira;
@@ -65,7 +63,23 @@ public class MainControloElevador implements Runnable {
         this.portas = portas;
         this.botoneira = botoneira;
         this.monitor = monitor;
-        monitor.setStartime(stime);
+    }
+
+    /**
+     * Método acoplado que cria uma janela que disponibiliza o input de um
+     * inteiro relacionado à carga presente atualmente no elevador.
+     */
+    private int getInputCarga() {
+        String input = JOptionPane.showInputDialog(
+                "Peso presente no elevador atualmente: ", "320");
+        try {
+            return Integer.parseUnsignedInt(input);
+        } catch (NumberFormatException exc) {
+            JOptionPane.showMessageDialog(null,
+                    "Devera introduzir um numero inteiro positivo!",
+                    "Parsing Error", JOptionPane.ERROR_MESSAGE);
+            return getInputCarga();
+        }
     }
 
     /**
@@ -126,8 +140,9 @@ public class MainControloElevador implements Runnable {
                         }
                         piso++; //piso = indice array + 1;
                         if (monitor.getPisoAtual() == piso) {
-                            monitor.printWarning("Ja se encontra no piso!", true);
+                            monitor.printWarning("Ja se encontra no piso selecionado!", true);
                             monitor.removeFloorReached();
+                            monitor.displayQueue();
                         } else {
                             if (monitor.getPisoAtual() > piso) {
                                 pisosADeslocar = monitor.getPisoAtual() - piso;
@@ -135,6 +150,12 @@ public class MainControloElevador implements Runnable {
                             } else {
                                 pisosADeslocar = piso - monitor.getPisoAtual();
                                 monitor.setDirecaoMotor(EstadosMotor.CIMA);
+                            }
+
+                            //questiona sobre a carga atual e verifica que pode prosseguir
+                            while (!monitor.setCargaAtual(getInputCarga())) {
+                                monitor.printWarning("Peso dentro do elevador "
+                                        + "acima do limite!!", true);
                             }
 
                             //iniciar o movimento
@@ -151,7 +172,6 @@ public class MainControloElevador implements Runnable {
                             workingElevator.join();
                             //esperar pelo motor
                             monitor.espera();
-                            Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
                             //sinalizar as portas novamente
                             semaforoPortas.release();
                         }
@@ -168,7 +188,7 @@ public class MainControloElevador implements Runnable {
             continuar até que saia do ciclo, ou chegue a alguma operação que invoque
             a exceção). Por isso, o código de interromper as outras
             thread está repetido. O mesmo acontece nas outras threads ...
-            */
+             */
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...");
             monitor.printWarning("GoOdByE!", false);
@@ -176,17 +196,17 @@ public class MainControloElevador implements Runnable {
             portas.interrupt();
             botoneira.interrupt();
             this.janelaPrincipal.dispose();
-            
+
         } catch (IllegalThreadStateException ex) {
             /*
             esta catch clause acontece quando é feito "<thread>.start()" numa
             thread que já se encontra a funcionar. (isto aconteceu-me bastante,
             na minha inocente distração, equanto fazia algum código...)
             Já não serve de nada, mas fica aqui na mesma.
-            */
+             */
             Thread.currentThread().interrupt();
             Logger.getLogger(MainControloElevador.class.getName()).log(Level.SEVERE, null, ex);
-            
+
         } catch (InterruptedException ex) {
             System.out.println();
             System.out.println("\t* Interrompendo as threads *\n\t\t...\n");
@@ -199,31 +219,19 @@ public class MainControloElevador implements Runnable {
     }
 
     public static void main(String[] args) {
-        /*
-        Este semáforo vai servir para quando fizermos operações de escrever 
-        os logs no ficheiro e assim.
-        Um exemplo: O módulo Main é constituido por várias classes (diferentes threads).
-          Imaginemos, temos uma thread relacionada ao movimento do elevador
-              (já temos essa thread, "MainMovimentoElevador") e outra que por alguma razão
-              analisa quantas vezes as portas abriram e fecharam.
-          Basicamente, faríamos um método para escrever no ficheiro (provavelmente
-              na classe "MonitorElevador") e no código de cada thread, cada vez que
-              esse método fosse chamado ficaria do tipo:
-                ...
-                exclusaoMutua.acquire();
-                escreverFicheiro();
-                exclusaoMutua.release();
-        Pronto.
-        Isto no fundo serve para evitar que o código se faça simultaneamente.
-         */
+        //semáforo de gestão de áreas críticas (como a escrita dos logs)
         Semaphore exclusaoMutua = new Semaphore(1);
         /**
          * semaforos relacionados ao funcionamento dos sub-modulos
          */
-        //0 permições iniciais para correr só quando "mandado"
+        //semáforo para sinalização do funcionamento do motor 
+        //( release em [Thread_ControloElevador] )
         Semaphore semaforoMotor = new Semaphore(0);
-        //1 permição inicial para verificar as portas logo na primeira iteração
+        //semáforo de sinalização do funcionamento das portas
+        //( release em [Thread_ControloElevador] e [Thread_Botoneira] )
         Semaphore semaforoPortas = new Semaphore(0);
+        //semáforo que sinaliza o início do funcionamento do elevador
+        //( release realizada pelo uso dos botões em [Thread_Botoneira] )
         Semaphore semaforoBotoneira = new Semaphore(0);
 
         try {
@@ -238,7 +246,7 @@ public class MainControloElevador implements Runnable {
             motor.setName("[Thread_MotorElevador]");
             threads[1] = motor;
             Botoneira botoneira = new Botoneira(semaforoBotoneira, monitor, semaforoPortas);
-            motor.setName("[Thread_Botoneira]");
+            botoneira.setName("[Thread_Botoneira]");
             threads[2] = botoneira;
 
             //thread principal
@@ -247,12 +255,18 @@ public class MainControloElevador implements Runnable {
                             monitor, motor, portas, botoneira), "[Thread_ControloElevador]");
             controloElevador.start();
 
+            //variável para os logs
+            double startTime = System.currentTimeMillis();
+
             try {
                 controloElevador.join();
-                for ( Thread th : threads) {
+                for (Thread th : threads) {
                     th.join();
                 }
 
+                //variável para os logs
+                double endTime = System.currentTimeMillis();
+                monitor.reportGeneration(endTime - startTime);
                 System.out.println("\n\t* Elevador Desativado! *");
             } catch (InterruptedException ex) {
             }

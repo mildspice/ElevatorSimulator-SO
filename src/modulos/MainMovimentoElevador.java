@@ -14,10 +14,7 @@ import tools.MonitorElevador;
  */
 public class MainMovimentoElevador extends Thread {
 
-
-    //em segundos
-    private final int FlOOR_WAIT_TIME_MS = 5;
-    //número de pisos a deslocar ...
+    private final int FlOOR_WAIT_TIME_MS = 5; //em segundos
     private final int numOfFloors;
     //objeto partilhado
     protected MonitorElevador monitor;
@@ -26,7 +23,7 @@ public class MainMovimentoElevador extends Thread {
      * Construtor para a thread.
      *
      * @param monitor objeto partilhado
-     * @param num numero de pisos entre o priso atual e o piso final
+     * @param num numero de pisos a deslocar entre o priso atual e o piso final
      */
     public MainMovimentoElevador(MonitorElevador monitor, int num) {
         this.monitor = monitor;
@@ -61,29 +58,26 @@ public class MainMovimentoElevador extends Thread {
      */
     @Override
     public void run() {
-        //variável para o cálculo do tempo de execução
-        double tempoInicial= System.currentTimeMillis();
         String threadName = "[Thread_RunningElevator]";
         Thread.currentThread().setName(threadName);
-        //variável para o log
-        int pisoInicial=monitor.getPisoAtual();
+        //variável para o cálculo do tempo de execução (log)
+        double tempoInicial = System.currentTimeMillis();
+        int pisoInicial = monitor.getPisoAtual();
+
         try {
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(false);
-            //tempo de espera até que o elevador comece a andar
-            //Thread.sleep(monitor.MOVEMENT_WAITING_TIME); 
-            //agora fica só a esperar no motor.
+            //espera pelo motor
             monitor.espera();
 
             /**
              * cada iteração do ciclo representa o movimento do elevador entre
              * cada piso
              *
-             * NOTA (ja esta feito, fica aqui na mesma como "MEMO"): Secalhar
-             * era melhor fazer o escalonamento de pisos. Do tipo, dar a
-             * possibilidade para carregar em vários pisos. Para isso faz-se um
-             * algoritmo de escalonamento (até pode ser o FIFO, assim era mais
-             * facil).
+             * ( DEPRECATED ) NOTA: Secalhar era melhor fazer o escalonamento de
+             * pisos. Do tipo, para escolher qual o próximo piso a se deslocar.
+             * Para isso faz-se outro algoritmo de escalonamento (por agora está
+             * o FIFO).
              */
             for (int i = 0; i < this.numOfFloors; i++) {
                 /**
@@ -112,22 +106,24 @@ public class MainMovimentoElevador extends Thread {
                 monitor.displayPisoAtual();
             }
 
-            //impressão para a janela principal ...
+            //remover o piso do escalonamento
             if (!monitor.getFloorQueue().isEmpty()) {
                 monitor.removeFloorReached();
             }
-            monitor.setTempoExec(System.currentTimeMillis()-tempoInicial);
             monitor.displayQueue();
             monitor.displayPisoAtual();
-            monitor.usingCounter();
-            monitor.pesoTotal();
+            
+            //LOG
+            monitor.counterExecucao();
+            monitor.counterPesoTotal();
+            monitor.writeLog(Thread.currentThread(), pisoInicial, monitor.getPisoAtual(),
+                    monitor.getCargaAtual(), System.currentTimeMillis() - tempoInicial);
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(true);
         } catch (InterruptedException ex) {
-            System.err.println("Problemas na thread: " + threadName + "\nLOG: ");
-            Logger.getLogger(MainMovimentoElevador.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("\t******\n"
+                    + "Deslocação parada abruptamente!! " + threadName);
         }
-        monitor.writeLog(Thread.currentThread(),pisoInicial,monitor.getPisoAtual());
     }
 
 }

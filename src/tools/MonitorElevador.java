@@ -4,6 +4,7 @@ import enums.EstadosMotor;
 import enums.EstadosPortas;
 import java.io.*;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -17,7 +18,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -37,33 +37,29 @@ public class MonitorElevador {
 
     //tempo de espera predefinido entre as execuções
     public final int MOVEMENT_WAITING_TIME = 1000;
-    //variáveis da janela principal
-    private JFrame janela;
+    /* variáveis da janela principal */
     private JTextField displayFloor;
     private JTextArea displayFloorQueue;
     private JTextArea displayFloorPretty;
     private JTextArea displayAvisos;
     private JTextArea displayAvisosLast;
+    private JButton workButton;
 
-    //variáveis gerais do funcionamento do elevador
+    /* variáveis gerais do funcionamento do elevador */
     protected Semaphore semaforoExclusaoMutua;
     private boolean flagFloorReached = true;
     private boolean flagFuncionamento = false;
-    //valor a ser colocado através do ficheiro "propriedades"
+    //valor a ser colocado através do ficheiro "properties"
     private int NUM_PISOS;
     private int pisoAtual = 1;
-    //valor a ser colocado através do ficheiro "propriedades"
+    //valor a ser colocado através do ficheiro "properties"
     private int CARGA_TOTAL;
     private int cargaAtual = 0;
-    private int cargaTransportadatotal=0;
-    private double startime;
-    private double endtime;
-    //variâveis relacionadas ao funcionamento da Botoneira
-    /*
-    secalhar há uma forma melhor de fazer isto mas assim também funciona:
+
+    /* variáveis relacionadas ao funcionamento da Botoneira */
+ /*secalhar há uma forma melhor de fazer isto mas assim também funciona:
     -> piso = indice do array + 1,
-        ex. botoesPisos[2] = "PISO3", botoesPisos[0] = "PISO1"
-     */
+        ex. botoesPisos[2] = "PISO3", botoesPisos[0] = "PISO1"*/
     private String[] botoesPisos;
     //acabei por colocar as portas como tu (Rodrigo) tinhas inicialmente
     //(como boolean) true - A, false - F.
@@ -73,14 +69,15 @@ public class MonitorElevador {
     //esta é a fila para a introdução dos pisos de destino. Para o escalonamento
     //vai ser usado o FIFO em princípio.
     private final ArrayList<String> floorQueue = new ArrayList<>();
-    //variáveis relacionadas ao estado do motor e das portas
+
+    /* variáveis relacionadas ao estado do motor e das portas */
     private EstadosMotor direcaoMotor;
     private EstadosPortas estadoPortas = EstadosPortas.ABERTO;
 
-    //variáveis do log
-    private Logger logger;
-    private double tempoExec;
+    /* variáveis do log */
     private int vezesExecutado = 0;
+    private int vezesMovimentoPortas = 0;
+    private int cargaTotalTransportada = 0;
 
     /**
      * Construtor do objeto partilhado.
@@ -91,8 +88,6 @@ public class MonitorElevador {
      * foi lido
      */
     public MonitorElevador(Semaphore exclusaoMutua) throws IOException {
-        logger = Logger.getLogger("ElevatorLog");
-      //  startime=System.currentTimeMillis();
         setDefinitions();
         this.semaforoExclusaoMutua = exclusaoMutua;
     }
@@ -114,14 +109,13 @@ public class MonitorElevador {
     /**
      * "Adormece" a thread que chama este método, ficando nesse estado até que
      * outra thread a "acorde"
+     *
+     * @throws java.lang.InterruptedException exceção resultante da interrupção
+     * da thread enquanto "espera" neste "wait"
      */
-    public synchronized void espera() {
-        try {
-            while (!this.flagFuncionamento) {
-                this.wait();
-            }
-
-        } catch (InterruptedException ie) {
+    public synchronized void espera() throws InterruptedException {
+        while (!this.flagFuncionamento) {
+            this.wait();
         }
     }
 
@@ -144,6 +138,15 @@ public class MonitorElevador {
     }
 
     /**
+     * Retorna o conjunto de pisos introduzidos pelo utilizador postos em fila.
+     *
+     * @return array list com a fila de todo os pisos introduzidos
+     */
+    public ArrayList<String> getFloorQueue() {
+        return this.floorQueue;
+    }
+
+    /**
      * Seleciona o botão relativo ao estado das portas.
      *
      * @param botao boolean referente ao botão manual das portas (true - A,
@@ -159,17 +162,8 @@ public class MonitorElevador {
      *
      * @return boolean referente ao botão das portas
      */
-    public synchronized boolean getBotaoPortas() {
+    public synchronized boolean isPortasAbertas() {
         return this.doorButton;
-    }
-
-    /**
-     * Retorna o conjunto de pisos introduzidos pelo utilizador postos em fila.
-     *
-     * @return array list com a fila de todo os pisos introduzidos
-     */
-    public ArrayList<String> getFloorQueue() {
-        return this.floorQueue;
     }
 
     /**
@@ -215,13 +209,16 @@ public class MonitorElevador {
      * Retorna o estado atual das portas. Sensível ao estado da chave!
      *
      * @param estado enum constant referente ao estado das portas
+     * @return boolean referente ao sucesso do método
      */
-    public synchronized void setEstadoPortas(EstadosPortas estado) {
+    public synchronized boolean setEstadoPortas(EstadosPortas estado) {
         if (chave) {
             printWarning("Chave Acionada!\n"
                     + "Movimento das Portas Impedido.", true);
+            return false;
         } else {
             this.estadoPortas = estado;
+            return true;
         }
     }
 
@@ -256,13 +253,17 @@ public class MonitorElevador {
      * Altera o estado funcional do elevador. Sensível ao estado da chave!
      *
      * @param flag booleano para o andamento do elevador
+     * @return boolean referente ao sucesso do método (necessário para a
+     * botoneira)
      */
-    public synchronized void setFlagFuncionamento(boolean flag) {
+    public synchronized boolean setFlagFuncionamento(boolean flag) {
         if (chave) {
             printWarning("Chave Acionada!\n"
                     + "Deslocacao do elevador impedida.", true);
+            return false;
         } else {
             this.flagFuncionamento = flag;
+            return true;
         }
     }
 
@@ -305,9 +306,11 @@ public class MonitorElevador {
      */
     public synchronized boolean setCargaAtual(int carga) {
         if (carga > CARGA_TOTAL) {
+            this.workButton.setBackground(Color.RED);
             return false;
         } else {
             this.cargaAtual = carga;
+            this.workButton.setBackground(Color.GREEN);
             return true;
         }
     }
@@ -361,8 +364,8 @@ public class MonitorElevador {
     }
 
     /**
-     * Just for the sake of being synchronized e para que as variáveis também
-     * estejam em private.
+     * Just for the sake of being synchronized e para que as variáveis das
+     * janelas também estejam em private.
      */
     public synchronized void displayPisoAtual() {
         String prettyFloorDisplay
@@ -393,6 +396,8 @@ public class MonitorElevador {
         }
     }
 
+    //------------------------------------------------------------------
+    //JSwing e Logs
     /**
      * Cria o JFrame relativo ao módulo MAIN onde serão imprimidas as mensagens
      * mais gerais do funcionamento do elevador e informação relativa aos pisos.
@@ -401,28 +406,15 @@ public class MonitorElevador {
      */
     public JFrame criarJanelaPrincipal() {
         /* FAZER JANELA PRINCIPAL DO ELEVADOR */
-        this.janela = new JFrame();
+        JFrame janela = new JFrame();
 
-        janela.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         janela.setTitle("[ Display Principal Elevador ]");
-        /**
-         * Design Note: An alternative option for setting the size of the window
-         * is to call the pack() method of the JFrame class. This method
-         * calculates the size of the window based on the graphical components
-         * it contains. Because this sample application doesn't need to change
-         * its window size, we'll just use ​the setSize() method.
-         */
         janela.setLocationByPlatform(true);
-
-        /**
-         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
-         */
+        //evita o fecho normal da janela. Obriga o uso do botão EXIT
         janela.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel displayPanel = new JPanel();
         displayPanel.setLayout(new GridLayout(1, 3));
-        JLabel prettyLabel = new JLabel("[Current Floor Display]");
-        prettyLabel.setPreferredSize(new Dimension(50, 100));
         this.displayFloor = new JTextField();
         displayFloor.setEditable(false);
         displayFloor.setPreferredSize(new Dimension(75, 100));
@@ -430,13 +422,18 @@ public class MonitorElevador {
         displayFloorPretty.setEditable(false);
         displayFloorPretty.setPreferredSize(new Dimension(175, 100));
         displayFloorPretty.setFont(new Font("monospaced", Font.PLAIN, 12));
-        displayFloorPretty.add(prettyLabel);
-        displayPanel.add(prettyLabel);
         displayPanel.add(displayFloor);
         displayPanel.add(displayFloorPretty);
 
         JPanel floorPanel = new JPanel();
-        floorPanel.setLayout(new GridLayout(1, 2));
+        floorPanel.setLayout(new GridLayout(1, 3));
+        workButton = new JButton("- Carga Atual -");
+        workButton.setEnabled(false);
+        workButton.setBackground(Color.DARK_GRAY);
+        workButton.setForeground(Color.WHITE);
+        workButton.setToolTipText("Botão de sinalizacao sobre a carga atual "
+                + "dentro do elevador.");
+        floorPanel.add(workButton);
         this.displayFloorQueue = new JTextArea();
         displayFloorQueue.setEditable(false);
         displayFloorQueue.setLineWrap(true);
@@ -456,11 +453,9 @@ public class MonitorElevador {
                     displayAvisos.setText("");
                 });
         floorPanel.add(apagarAvisos);
-        //mostra erros eventuais e outros avisos 
-        //(isto secalhar é melhor ficar na janela principal)
+
         JPanel avisosPanel = new JPanel();
         avisosPanel.setLayout(new GridLayout(2, 1));
-        //----
         this.displayAvisosLast = new JTextArea(10, 30);
         displayAvisosLast.setEditable(false);
         displayAvisosLast.setLineWrap(true);
@@ -491,28 +486,24 @@ public class MonitorElevador {
         return janela;
     }
 
-    public double getTempoExec() {
-        return tempoExec;
-    }
-
-    public void setTempoExec(double tempoExec) {
-        this.tempoExec = tempoExec;
-    }
-
     /**
-     * Escreve para um ficheiro de Log. Este tipos de ficheiros é mesmo do Java
-     * e escreverá logo de uma maneira predefinida.
+     * Escreve para um ficheiro de Log (movimento do elevador).
+     * .<p>
+     * Este tipos de ficheiros é mesmo do Java e escreverá logo de uma maneira
+     * predefinida.</p>
      *
      * @param thread passa para o ficheiro a Thread que criou o log
      * @param pisoInicial passa para o ficheiro o piso inicial do deslocamento
      * @param pisoFinal passa para o ficheiro o destino do deslocamento.
+     * @param carga peso deslocado
+     * @param tempoDescolacao tempo total da
      */
-    public synchronized void writeLog(Thread thread, int pisoInicial, int pisoFinal) {
-
+    public synchronized void writeLog(
+            Thread thread, int pisoInicial, int pisoFinal, int carga, double tempoDescolacao) {
+        Logger logger = Logger.getLogger("ElevatorLog");
         FileHandler fh;
 
         try {
-
             fh = new FileHandler("ElevatorLog.log", true);
             logger.addHandler(fh);
             SimpleFormatter simpleFormatter = new SimpleFormatter();
@@ -524,39 +515,46 @@ public class MonitorElevador {
                     + " Tempo de trabalho: " + getTempoExec());
              */
             this.semaforoExclusaoMutua.acquire();
-            logger.log(Level.INFO, "{0} Piso Inicial: {1} Piso Final: "
-                    + "{2} Peso transportado: {3} Tempo de trabalho: {4}",
+            logger.log(Level.INFO, "{0} Piso Inicial: [{1}], Piso Final: "
+                    + "[{2}], Peso transportado: [{3}], Tempo de trabalho: [{4}]",
                     new Object[]{thread.getName(), pisoInicial, pisoFinal,
-                        cargaAtual, getTempoExec()});
+                        carga, tempoDescolacao});
             fh.close();
             this.semaforoExclusaoMutua.release();
-
-        } catch (IOException ex) {
-
-        } catch (InterruptedException e) {
-
+        } catch (InterruptedException ex) {
+        } catch (IOException | SecurityException ex) {
+            Logger.getLogger(MonitorElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     /**
-     * Incrementa na varíavel o número de vezes que foi executado
+     * Incrementa na varíavel o número de vezes que o elevador foi executado
      */
-    public void usingCounter() {
+    public void counterExecucao() {
         vezesExecutado++;
     }
 
     /**
-     * Calcula o peso total que vai sendo utilizado no elevador.
+     * Incrementa na varíavel o número de movimentos das portas
      */
-    public void pesoTotal(){ cargaTransportadatotal=cargaTransportadatotal+cargaAtual; }
+    public void counterPortas() {
+        vezesMovimentoPortas++;
+    }
 
     /**
-     * Cria um relatório geral quando se fecha o programa
-     *
-     * (tu estás a criar 2 ficheiros de log diferentes!?)
+     * Incrementa o peso total que vai sendo utilizado no elevador.
      */
-    public void reportGeneration() {
+    public void counterPesoTotal() {
+        cargaTotalTransportada = cargaTotalTransportada + cargaAtual;
+    }
+
+    /**
+     * Cria um relatório do funcionamento geral quando se fecha o programa.
+     * (aberto a mais ideias para informação a adicionar aos logs)
+     *
+     * @param execTime tempo total de execução do programa
+     */
+    public void reportGeneration(double execTime) {
 
         Logger logger = Logger.getLogger("GeneralExecutionLog");
         FileHandler fh;
@@ -567,30 +565,18 @@ public class MonitorElevador {
             logger.addHandler(fh);
             SimpleFormatter simpleFormatter = new SimpleFormatter();
             fh.setFormatter(simpleFormatter);
-            //Que mais colocar aqui? LOL
-            /*
-            tu estás a guardar uma variável de tempo de execução, poe aqui tambem.
-            podes guardar o número de vezes que as portas foram usadas.
-            
-            podes por coisas mais engraçadas tipo, em que direcao o motor se deslocou
-            mais vezes, quantas vezes o utilizador se tentou suicidar (experimenta
-            por o elevador a funcionar, pará-lo manualmente e abre as portas. lê a mensagem
-            que vai aparecer na janela principal...)
-            
-            o problema disto é que secalhar vai ser preciso criar muitas variaveis.
-            mas acho que nao é problema. temos isto muito bem organizado.
-             */
-            //logger.info("Número de Vezes Executado nesta sessão: " + vezesExecutado);
 
-            logger.log(Level.INFO,  "Número de vezes executado: {0} Total de peso transportado: "
-                            + "{1} Tempo total de execução: {2}",
-                    new Object[]{vezesExecutado, cargaAtual, getFinalTime()});
+            logger.log(Level.CONFIG, "Numero de Pisos: {0} Carga Maxima: ",
+                    new Object[]{NUM_PISOS, CARGA_TOTAL});
+            logger.log(Level.INFO, "Numero de vezes executado: [{0}], Total de peso transportado: "
+                    + "[{1}], Total Movimentos das Portas [{2}], Tempo total de trabalho: [{3}]",
+                    new Object[]{vezesExecutado, cargaTotalTransportada,
+                        vezesMovimentoPortas, execTime});
             fh.close();
 
-        } catch (IOException ex) {
-
+        } catch (IOException | SecurityException ex) {
+            Logger.getLogger(MonitorElevador.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     /**
@@ -618,17 +604,5 @@ public class MonitorElevador {
             this.botoesPisos[i] = "PISO" + (i + 1);
         }
         CARGA_TOTAL = Integer.parseInt(p.getProperty("carga"));
-    }
-
-    public double getFinalTime() {
-        return endtime-startime;
-    }
-
-    public void setEndtime(double endtime) {
-        this.endtime = endtime;
-    }
-
-    public void setStartime(double startime) {
-        this.startime = startime;
     }
 }

@@ -46,8 +46,7 @@ public class Portas extends Thread {
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
      * Novamente, as operações da thread estão dentro de um ciclo que quebrará
-     * quando a thread for interrompida. É também feita a verificação relativa à
-     * chave de bloqueio do elevador.
+     * quando a thread for interrompida.
      * </p>
      */
     @Override
@@ -62,19 +61,18 @@ public class Portas extends Thread {
                 //as portas funcionam só quando é sinalizado
                 semaforoPortas.acquire();
 
-
                 /*
-                    NOTA: quando o botao S é utilizado, o elevador está parado
-                    mas pode não estar num piso, daí a opção alternativa nas condições.
-                    
-                    para que seja possível utilizar os botoes das portas é preciso
-                    que o elevador esteja completamente parado!
+                NOTA: quando o botao S é utilizado, o elevador está parado
+                mas pode não estar num piso, daí a opção alternativa nas condições.
+                
+                para que seja possível utilizar os botoes das portas é preciso
+                que o elevador esteja completamente parado!
                  */
                 if (!monitor.isEmFuncionamento() && monitor.isFloorReached()
-                        || monitor.getBotaoPortas() == true && !monitor.isEmFuncionamento()) {
+                        || monitor.isPortasAbertas() == true && !monitor.isEmFuncionamento()) {
                     //esta condição tem de ser repetido devido ser possível alterar
                     //manualmente o estado das portas quando isFloorReached é true
-                    if (monitor.getBotaoPortas() == false) {
+                    if (monitor.isPortasAbertas() == false) {
                         monitor.setEstadoPortas(EstadosPortas.FECHADO);
                     } else {
                         monitor.setEstadoPortas(EstadosPortas.ABERTO);
@@ -88,7 +86,7 @@ public class Portas extends Thread {
                     }
 
                 } else if (monitor.isEmFuncionamento()
-                        || monitor.getBotaoPortas() == false && !monitor.isEmFuncionamento()) {
+                        || monitor.isPortasAbertas() == false && !monitor.isEmFuncionamento()) {
                     monitor.setEstadoPortas(EstadosPortas.FECHADO);
                 }
 
@@ -109,12 +107,9 @@ public class Portas extends Thread {
     private void criarJanela() {
         this.guiFrame = new JFrame();
 
-        guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         guiFrame.setTitle("[ Display Portas ]");
         guiFrame.setLocationByPlatform(true);
-        /**
-         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
-         */
+        //evita o fecho normal da janela. Obriga o uso do botão EXIT
         guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel estadoPortas = new JPanel();

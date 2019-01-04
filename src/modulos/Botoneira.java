@@ -69,16 +69,21 @@ public class Botoneira extends Thread {
             this.criarJanela();
             Semaphore temp = new Semaphore(0);
             /**
-             * ainda não sei muito bem o que fazer com este ciclo, mas acho que
-             * vai dar jeito. No fundo, vai ser para fazer operações especiais
-             * em relação aos inputs ou para impedir o uso de botoes, ...
+             * ( DEPRECATED ) ainda não sei muito bem o que fazer com este
+             * ciclo, mas acho que vai dar jeito. No fundo, vai ser para fazer
+             * operações especiais em relação aos inputs ou para impedir o uso
+             * de botoes, ...
              */
-            while (!Thread.interrupted()) {
+            //while (!Thread.interrupted()) { }
 
-                temp.acquire();
+            /*
+            este semáforo é basicamente um "dummy", só serve para que a thread
+            da botoneira não feche.
+            provavelmente haverá uma forma muito melhor que esta para fazer isto
+            mas estou com falta de criatividade...*/
+            temp.acquire();
 
-            }
-            this.guiFrame.dispose();
+            //this.guiFrame.dispose();
         } catch (InterruptedException ex) {
             this.guiFrame.dispose();
         }
@@ -92,21 +97,9 @@ public class Botoneira extends Thread {
     private void criarJanela() {
         this.guiFrame = new JFrame();
 
-        guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         guiFrame.setTitle("[ Botoneira ]");
-        /**
-         * Design Note: An alternative option for setting the size of the window
-         * is to call the pack() method of the JFrame class. This method
-         * calculates the size of the window based on the graphical components
-         * it contains. Because this sample application doesn't need to change
-         * its window size, we'll just use ​the setSize() method.
-         */
-        //guiFrame.setSize(500, 500);
         guiFrame.setLocationByPlatform(true);
-
-        /**
-         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
-         */
+        //evita o fecho normal da janela. Obriga o uso do botão EXIT
         guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         /**
@@ -149,6 +142,7 @@ public class Botoneira extends Thread {
         //botoes das portas
         final String[] botoesPortas = {"A", "F"};
         for (String nomeBotao : botoesPortas) {
+
             JButton botao = new JButton(nomeBotao);
             if (nomeBotao.equals("A")) {
                 botao.addActionListener(
@@ -181,6 +175,7 @@ public class Botoneira extends Thread {
             }
             botoesEspeciais.add(botao);
         }
+
         //botao de stop e chave
         JButton botaoStop = new JButton("S");
         botaoStop.setToolTipText("Utilize este botao para parar ou acionar "
@@ -195,16 +190,18 @@ public class Botoneira extends Thread {
                         if (monitor.getFloorQueue().isEmpty() && monitor.isFloorReached()) {
                             monitor.printWarning("Experimente selecionar um piso primeiro.", true);
                         } else {
-                            monitor.setFlagFuncionamento(true);
-                            semaforoPortas.release();
-                            semaforoBotoneira.release();
-                            monitor.acordaTodas();
-                            monitor.printWarning("Elevador acionado!", false);
+                            if (monitor.setFlagFuncionamento(true)) {
+                                semaforoPortas.release();
+                                semaforoBotoneira.release();
+                                monitor.acordaTodas();
+                                monitor.printWarning("Elevador acionado!", false);
+                            }
                         }
                     }
 
                 });
         botoesEspeciais.add(botaoStop);
+
         //a chave é um botao diferente (toggle)
         this.chave = new JToggleButton("K", false);
         chave.setToolTipText("A chave so podera ser acionada quando o "
@@ -256,12 +253,15 @@ public class Botoneira extends Thread {
                     }
                     if (i < Thread.activeCount()) {
                         tarray[i].interrupt();
-                        monitor.setEndtime(System.currentTimeMillis());
-                        monitor.reportGeneration();
                     } else {
+                        if (monitor.isChaveAcionada()) {
+                            System.exit(0);
+                        }
                         System.err.println("AVISO: \n"
                                 + "Main Thread - [Thread_ControloElevador] "
-                                + "- não encontrada!");
+                                + "- nao encontrada!\n"
+                                + "(se pretender fechar o programa, acione a "
+                                + "chave e clique no botao EXIT novamente)");
                     }
                 });
 

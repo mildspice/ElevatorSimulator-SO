@@ -28,7 +28,7 @@ public class Motor extends Thread {
     private JTextField displayDirecao;
     private JTextArea displayEffects;
 
-    private final int ITERATION_TIME = 200;
+    private final int ITERATION_TIME = 200; //tempo relacionado à seta de display
     protected MonitorElevador monitor;
     protected Semaphore semaforoMotor;
 
@@ -152,21 +152,9 @@ public class Motor extends Thread {
     private void criarJanela() {
         this.guiFrame = new JFrame();
 
-        guiFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         guiFrame.setTitle("[ Display Motor ]");
-        /**
-         * Design Note: An alternative option for setting the size of the window
-         * is to call the pack() method of the JFrame class. This method
-         * calculates the size of the window based on the graphical components
-         * it contains. Because this sample application doesn't need to change
-         * its window size, we'll just use ​the setSize() method.
-         */
-        //guiFrame.setSize(200, 300);
         guiFrame.setLocationByPlatform(true);
-
-        /**
-         * AQUI FAZ DISABLE AO FECHO DO JFRAME NORMAL, OBRIGA A CLICAR NO EXIT!!!!!
-         */
+        //evita o fecho normal da janela. Obriga o uso do botão EXIT
         guiFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         JPanel estadoMotor = new JPanel();
