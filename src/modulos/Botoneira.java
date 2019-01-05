@@ -1,5 +1,6 @@
 package modulos;
 
+import enums.EstadosPortas;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -58,9 +59,9 @@ public class Botoneira extends Thread {
     /**
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
-     * No entanto, as operações desta thread fazem-se principalmente nos botões,
-     * sendo que neste método estariam funções mais específicas para o
-     * funcionamento desses botões.
+     * DEVELOPER NOTE: no entanto, as operações desta thread fazem-se
+     * principalmente nos botões, sendo que neste método estariam funções mais
+     * específicas para o "management" desses botões.
      * </p>
      */
     @Override
@@ -149,10 +150,10 @@ public class Botoneira extends Thread {
                         (ActionEvent e) -> {
                             /* CÓDIGO DOS BOTÕES DAS PORTAS */
                             if (!monitor.isEmFuncionamento()) {
-                                monitor.setBotaoPortas(true);
+                                monitor.clickBotaoPortas(EstadosPortas.ABERTO);
                                 displayInput.setText(nomeBotao + " - Aberto");
                             } else {
-                                monitor.printWarning("Elevador a funcionar!", false);
+                                displayInput.setText("Elevador a funcionar!");
                             }
 
                             semaforoPortas.release();
@@ -163,10 +164,10 @@ public class Botoneira extends Thread {
                         (ActionEvent e) -> {
                             /* CÓDIGO DOS BOTÕES DAS PORTAS */
                             if (!monitor.isEmFuncionamento()) {
-                                monitor.setBotaoPortas(false);
+                                monitor.clickBotaoPortas(EstadosPortas.FECHADO);
                                 displayInput.setText(nomeBotao + " - Fechado");
                             } else {
-                                monitor.printWarning("Elevador a funcionar!", false);
+                                displayInput.setText("Elevador a funcionar!");
                             }
 
                             semaforoPortas.release();

@@ -45,38 +45,36 @@ public class Portas extends Thread {
     /**
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
-     * Novamente, as operações da thread estão dentro de um ciclo que quebrará
-     * quando a thread for interrompida.
+     * DEVELOPER NOTE: Novamente, as operações da thread estão dentro de um
+     * ciclo que quebrará quando a thread for interrompida.
      * </p>
      */
     @Override
     public void run() {
+        this.criarJanela();
+        displayEstado.setText(monitor.getEstadoPortas().message());
+        displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
         try {
-            this.criarJanela();
-            displayEstado.setText(monitor.getEstadoPortas().message());
-            displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
-
             while (!Thread.interrupted()) {
                 //este semaforo serve para que o ciclo nao esteja a correr constantemente
                 //as portas funcionam só quando é sinalizado
                 semaforoPortas.acquire();
 
+                //LOG
+                EstadosPortas temp = monitor.getEstadoPortas();
+
                 /*
-                NOTA: quando o botao S é utilizado, o elevador está parado
-                mas pode não estar num piso, daí a opção alternativa nas condições.
-                
-                para que seja possível utilizar os botoes das portas é preciso
+                NOTAS: 
+                - quando o botao S é utilizado, o elevador está parado mas em 
+                princípio não estará parado num piso!
+                - para que seja possível utilizar os botoes das portas é preciso
                 que o elevador esteja completamente parado!
                  */
                 if (!monitor.isEmFuncionamento() && monitor.isFloorReached()
-                        || monitor.isPortasAbertas() == true && !monitor.isEmFuncionamento()) {
-                    //esta condição tem de ser repetido devido ser possível alterar
-                    //manualmente o estado das portas quando isFloorReached é true
-                    if (monitor.isPortasAbertas() == false) {
-                        monitor.setEstadoPortas(EstadosPortas.FECHADO);
-                    } else {
-                        monitor.setEstadoPortas(EstadosPortas.ABERTO);
-                    }
+                        || monitor.isBotaoPortasClicked()
+                        && monitor.getBotaoPortas().equals(EstadosPortas.ABERTO)) {
+                    monitor.setEstadoPortas(EstadosPortas.ABERTO);
+
                     //quando o elevador foi parado manualmente e o utilizador
                     //decide abrir as portas
                     if (!monitor.isFloorReached()) {
@@ -86,12 +84,20 @@ public class Portas extends Thread {
                     }
 
                 } else if (monitor.isEmFuncionamento()
-                        || monitor.isPortasAbertas() == false && !monitor.isEmFuncionamento()) {
+                        || monitor.isBotaoPortasClicked()
+                        && monitor.getBotaoPortas().equals(EstadosPortas.FECHADO)) {
                     monitor.setEstadoPortas(EstadosPortas.FECHADO);
                 }
 
                 displayEstado.setText(monitor.getEstadoPortas().message());
                 displayPretty.setText(monitor.getEstadoPortas().prettyDisplay());
+                monitor.resetBotaoPortas();
+                
+                //LOG
+                if (temp != monitor.getEstadoPortas()) {
+                    monitor.counterPortas();
+                    monitor.writeLog(Thread.currentThread(), monitor.getEstadoPortas());
+                }
             }
 
             this.guiFrame.dispose();

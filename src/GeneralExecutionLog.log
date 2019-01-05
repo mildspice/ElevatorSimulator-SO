@@ -1,12 +1,14 @@
-jan 02, 2019 5:44:56 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 1
-jan 02, 2019 5:48:34 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 0
-jan 02, 2019 5:50:44 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 0
-jan 02, 2019 5:56:50 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 7
-jan 02, 2019 6:31:56 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 3
-jan 03, 2019 3:37:58 PM tools.MonitorElevador reportGeneration
-INFO: Número de Vezes Executado nesta sessão: 0
+jan 04, 2019 9:36:31 PM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [4], Total de peso transportado: [393], Total Movimentos das Portas [8], Tempo total de trabalho: [88.816]
+jan 05, 2019 1:12:58 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [5], Total de peso transportado: [742], Total Movimentos das Portas [11], Tempo total de trabalho: [129.101]
+jan 05, 2019 1:26:58 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [3], Total de peso transportado: [115], Total Movimentos das Portas [2], Tempo total de trabalho: [93.558]
+jan 05, 2019 1:32:59 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [2], Total de peso transportado: [101], Total Movimentos das Portas [1], Tempo total de trabalho: [163.748]
+jan 05, 2019 1:33:58 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [3], Total de peso transportado: [0], Total Movimentos das Portas [1], Tempo total de trabalho: [52.760]
+jan 05, 2019 1:38:27 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [3], Total de peso transportado: [0], Total Movimentos das Portas [9], Tempo total de trabalho: [105.101]
+jan 05, 2019 1:44:31 AM tools.MonitorElevador reportGeneration
+INFO: Numero de vezes executado: [1], Total de peso transportado: [43], Total Movimentos das Portas [4], Tempo total de trabalho: [94.328]

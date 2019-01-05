@@ -14,7 +14,7 @@ public class MainMovimentoElevador extends Thread {
 
     private final int FlOOR_WAIT_TIME_MS = 5; //em segundos
     private final int numOfFloors;
-    //objeto partilhado
+
     protected MonitorElevador monitor;
 
     /**
@@ -31,9 +31,8 @@ public class MainMovimentoElevador extends Thread {
     /**
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
-     * NOTAS (estão espalhados ao longo do código vários comentários
-     * importantes, no entanto alguns vão ser colocados aqui por conveniência do
-     * javadoc.):
+     * DEVELOPER NOTE: estão espalhados ao longo do código vários comentários
+     * importantes, no entanto alguns vão ser colocados aqui por conveniência.
      * </p>
      * <p>
      * {@code for (int i = 0; i < this.numOfFloors; i++) ...} - Cada iteração do
@@ -68,28 +67,15 @@ public class MainMovimentoElevador extends Thread {
             //espera pelo motor
             monitor.espera();
 
-            /**
-             * cada iteração do ciclo representa o movimento do elevador entre
-             * cada piso
-             *
-             * ( DEPRECATED ) NOTA: Secalhar era melhor fazer o escalonamento de
+            /* ( DEPRECATED ) NOTA: Secalhar era melhor fazer o escalonamento de
              * pisos. Do tipo, para escolher qual o próximo piso a se deslocar.
              * Para isso faz-se outro algoritmo de escalonamento (por agora está
-             * o FIFO).
+             * o FIFO). 
              */
             for (int i = 0; i < this.numOfFloors; i++) {
-                /**
-                 * este ciclo representa o tempo que o elevador vai demorar a
-                 * deslocar-se entre pisos (e vai verificando a cada segundo se
-                 * o botao de paragem foi acionado)
-                 */
                 for (int j = 0; j <= this.FlOOR_WAIT_TIME_MS; j++) {
-                    Thread.sleep(1000);
-                    /**
-                     * este "if" está diretamente relacionado ao uso do botao de
-                     * stop (depois quando voltar a andar ao carregar outravez
-                     * no botão, faz (monitor.acordaTodas();)
-                     */
+                    Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
+                    
                     if (!monitor.isEmFuncionamento()) {
                         monitor.espera();
                     }
@@ -115,7 +101,8 @@ public class MainMovimentoElevador extends Thread {
             monitor.counterExecucao();
             monitor.counterPesoTotal();
             monitor.writeLog(Thread.currentThread(), pisoInicial, monitor.getPisoAtual(),
-                    monitor.getCargaAtual(), System.currentTimeMillis() - tempoInicial);
+                    monitor.getDirecaoMotor(), monitor.getCargaAtual(), 
+                    System.currentTimeMillis() - tempoInicial);
             //sinalização sobre a chegada ao destino
             this.monitor.setFloorReachedFlag(true);
         } catch (InterruptedException ex) {

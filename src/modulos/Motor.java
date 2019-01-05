@@ -28,7 +28,7 @@ public class Motor extends Thread {
     private JTextField displayDirecao;
     private JTextArea displayEffects;
 
-    private final int ITERATION_TIME = 200; //tempo relacionado à seta de display
+    private final int ITERATION_TIME; //tempo relacionado à seta de display
     protected MonitorElevador monitor;
     protected Semaphore semaforoMotor;
 
@@ -41,50 +41,38 @@ public class Motor extends Thread {
     public Motor(Semaphore semaforoMotor, MonitorElevador monitor) {
         this.semaforoMotor = semaforoMotor;
         this.monitor = monitor;
+        this.ITERATION_TIME = monitor.MOVEMENT_WAITING_TIME / 5;
     }
 
     /**
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
-     * NOTAS (estão espalhados ao longo do código vários comentários
-     * importantes, no entanto alguns vão ser colocados aqui por conveniência do
-     * javadoc.):
+     * DEVELOPER NOTE: estão espalhados ao longo do código vários comentários
+     * importantes, no entanto alguns vão ser colocados aqui por conveniência.
      * </p>
      * <p>
      * - Quando o main lança a thread do motor, este fica à espera de um sinal
-     * (através do uso de um semáforo) para que comece a funcionar.
-     * </p><p>
-     * Repare-se que só se faz um acquire(), nao se faz um release(), para que
-     * na proxima iteração o semaforo esteja com 0 permições novamente.
+     * (através do uso de um semáforo) para que comece a funcionar. Repare-se
+     * que só se faz um acquire(), nao se faz um release(), para que na proxima
+     * iteração o semaforo esteja com 0 permições novamente.
      * </p>
      * <p>
      * {@code while (!this.monitor.isFloorReached()) { ...
      * if (!monitor.isEmFuncionamento()) {
      * monitor.espera();
      * } ... }} - Este ciclo representa o motor que se mantém a funcionar até
-     * que seja sinalizado a chegada ao destino, isto é, sinalizado pelo botão
-     * específico da botoneira ("if" dentro do ciclo). No entanto, também vai
-     * imprimindo na janela uma sinalização do funcionamento do motor.
+     * que seja sinalizado a chegada ao destino (pela [Thread_RunningElevator].
+     * No entanto, também vai verificando se o botão de stop é acionado.
      * </p>
      */
     @Override
     public void run() {
+        this.criarJanela();
+        monitor.setDirecaoMotor(EstadosMotor.STOPPED);
+        displayDirecao.setText(monitor.getDirecaoMotor().message());
+        displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
         try {
-            this.criarJanela();
-            monitor.setDirecaoMotor(EstadosMotor.STOPPED);
-            displayDirecao.setText(monitor.getDirecaoMotor().message());
-            displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[0]);
-
             while (!Thread.interrupted()) {
-                /**
-                 * Quando o main lança a thread do motor, este fica à espera de
-                 * um sinal (através do uso do semáforo) para que comece a
-                 * funcionar.
-                 *
-                 * repare-se que só se faz um acquire(), nao se faz um
-                 * release(), para que na proxima iteração o semaforo esteja com
-                 * 0 permições novamente
-                 */
                 semaforoMotor.acquire();
 
                 //faz display na janela da direção atual do motor
@@ -96,20 +84,13 @@ public class Motor extends Thread {
                 monitor.setFlagFuncionamento(true);
                 monitor.acordaTodas();
 
-                /**
-                 * Este ciclo representa o motor que se mantém a funcionar até
-                 * que seja sinalizado a chegada ao destino, isto é, sinalizado
-                 * pelo botão específico da botoneira ("if" dentro do ciclo). No
-                 * entanto, também vai imprimindo na janela uma sinalização do
-                 * funcionamento do motor.
-                 */
                 int i = 0;
                 while (!this.monitor.isFloorReached()) {
                     //reset da sinalização
                     if (i == monitor.getDirecaoMotor().prettyDisplay().length) {
                         i = 0;
                     }
-                    Thread.sleep(ITERATION_TIME);
+                    Thread.sleep(ITERATION_TIME / 2);
                     displayEffects.setText(monitor.getDirecaoMotor().prettyDisplay()[i]);
                     i++;
 
@@ -122,13 +103,16 @@ public class Motor extends Thread {
                         displayDirecao.setText(monitor.getDirecaoMotor().message());
                         displayEffects.setText("\n\n\n\n* Elevador parado manualmente! *\n");
 
+                        double start = System.currentTimeMillis();
                         monitor.espera();
+                        monitor.writeLog(Thread.currentThread(),
+                                System.currentTimeMillis() - start);
 
                         //volta ao estado anterior
                         monitor.setDirecaoMotor(temp);
                         displayDirecao.setText(monitor.getDirecaoMotor().message());
                     }
-                    Thread.sleep(ITERATION_TIME);
+                    Thread.sleep(ITERATION_TIME / 2);
                 }
 
                 //chegada ao destino, paragem do elevador

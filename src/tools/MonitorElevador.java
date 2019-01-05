@@ -57,14 +57,12 @@ public class MonitorElevador {
     private int cargaAtual = 0;
 
     /* variáveis relacionadas ao funcionamento da Botoneira */
- /*secalhar há uma forma melhor de fazer isto mas assim também funciona:
-    -> piso = indice do array + 1,
-        ex. botoesPisos[2] = "PISO3", botoesPisos[0] = "PISO1"*/
+    //piso = indice do array + 1, ex. botoesPisos[2] = "PISO3"
     private String[] botoesPisos;
     //acabei por colocar as portas como tu (Rodrigo) tinhas inicialmente
     //(como boolean) true - A, false - F.
-    private boolean doorButton;
-    //para mais informações sobre o ItemEvent, ler a api do JToggleButton ItemListener
+    private EstadosPortas doorButton;
+    private boolean doorButtonClick;
     private boolean chave;
     //esta é a fila para a introdução dos pisos de destino. Para o escalonamento
     //vai ser usado o FIFO em princípio.
@@ -147,23 +145,42 @@ public class MonitorElevador {
     }
 
     /**
-     * Seleciona o botão relativo ao estado das portas.
+     * Guarda o clique feito no botão das portas.
      *
-     * @param botao boolean referente ao botão manual das portas (true - A,
-     * false - F)
+     * @param botao estado referente ao botão das portas
      */
-    public synchronized void setBotaoPortas(boolean botao) {
+    public synchronized void clickBotaoPortas(EstadosPortas botao) {
         this.doorButton = botao;
+        this.doorButtonClick = true;
     }
 
     /**
-     * Retorna a identificação dos botões referentes à botoneira do elevador em
-     * boolean. Aberto (botão 'A') - true, Fechado (botão 'F') - false.
+     * Retorna a informação do último clique feito no botão das portas.
+     *
+     * @return instância da enumeração com o estado selecionado
+     */
+    public synchronized EstadosPortas getBotaoPortas() {
+        return this.doorButton;
+    }
+
+    /**
+     * Diz se o botão das portas foi utilizado.
      *
      * @return boolean referente ao botão das portas
      */
-    public synchronized boolean isPortasAbertas() {
-        return this.doorButton;
+    public synchronized boolean isBotaoPortasClicked() {
+        return this.doorButtonClick;
+    }
+
+    /**
+     * Reseta o estado do clique do botao das portas. (mais um método acoplado,
+     * mas conveniente) (esta é a "segunda versão mais fácil" no uso dos botões
+     * das portas, ou seja não é necessáriamente eficiente [sendo que a primeira
+     * seria alterar o estado da porta diretamente no clique do botão, mas isso
+     * seria muito "crude"])
+     */
+    public synchronized void resetBotaoPortas() {
+        this.doorButtonClick = false;
     }
 
     /**
@@ -430,7 +447,7 @@ public class MonitorElevador {
         workButton = new JButton("- Carga Atual -");
         workButton.setEnabled(false);
         workButton.setBackground(Color.DARK_GRAY);
-        workButton.setForeground(Color.WHITE);
+        workButton.setForeground(Color.BLACK);
         workButton.setToolTipText("Botão de sinalizacao sobre a carga atual "
                 + "dentro do elevador.");
         floorPanel.add(workButton);
@@ -495,11 +512,13 @@ public class MonitorElevador {
      * @param thread passa para o ficheiro a Thread que criou o log
      * @param pisoInicial passa para o ficheiro o piso inicial do deslocamento
      * @param pisoFinal passa para o ficheiro o destino do deslocamento.
+     * @param direcao direcao do deslocamento
      * @param carga peso deslocado
-     * @param tempoDescolacao tempo total da
+     * @param tempoDescolacao tempo do deslocamento
      */
     public synchronized void writeLog(
-            Thread thread, int pisoInicial, int pisoFinal, int carga, double tempoDescolacao) {
+            Thread thread, int pisoInicial, int pisoFinal, EstadosMotor direcao,
+            int carga, double tempoDescolacao) {
         Logger logger = Logger.getLogger("ElevatorLog");
         FileHandler fh;
 
@@ -508,19 +527,81 @@ public class MonitorElevador {
             logger.addHandler(fh);
             SimpleFormatter simpleFormatter = new SimpleFormatter();
             fh.setFormatter(simpleFormatter);
-            //o netbeans "disse-me" que ficava melhor assim, se nao quiseres está
-            //aqui no comentário como estava antes
-            /*logger.info(thread.getName() + " Piso Inicial: " + pisoInicial
-                    + " Piso Final: " + pisoFinal + "Peso transportado: " + CARGA_KG
-                    + " Tempo de trabalho: " + getTempoExec());
-             */
+
             this.semaforoExclusaoMutua.acquire();
-            logger.log(Level.INFO, "{0} Piso Inicial: [{1}], Piso Final: "
-                    + "[{2}], Peso transportado: [{3}], Tempo de trabalho: [{4}]",
+            logger.log(Level.INFO, "- Deslocação do Elevador - {0}, "
+                    + "Piso Inicial: [{1}], Piso Final: [{2}], Direcao: [{3}], "
+                    + "Peso transportado: [{4}], Tempo de trabalho: [{5}]",
                     new Object[]{thread.getName(), pisoInicial, pisoFinal,
-                        carga, tempoDescolacao});
+                        direcao, carga, tempoDescolacao});
             fh.close();
             this.semaforoExclusaoMutua.release();
+
+        } catch (InterruptedException ex) {
+        } catch (IOException | SecurityException ex) {
+            Logger.getLogger(MonitorElevador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Escreve para um ficheiro de Log (paragens).
+     * .<p>
+     * Este tipos de ficheiros é mesmo do Java e escreverá logo de uma maneira
+     * predefinida.</p>
+     *
+     * @param thread passa para o ficheiro a Thread que criou o log
+     * @param timeStopped
+     */
+    public synchronized void writeLog(Thread thread, double timeStopped) {
+        Logger logger = Logger.getLogger("ElevatorLog");
+        FileHandler fh;
+
+        try {
+            fh = new FileHandler("ElevatorLog.log", true);
+            logger.addHandler(fh);
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            fh.setFormatter(simpleFormatter);
+
+            this.semaforoExclusaoMutua.acquire();
+            logger.log(Level.INFO, "- Paragem do elevador - {0}, "
+                    + "Duração da paragem: [{1}]",
+                    new Object[]{thread.getName(), timeStopped,});
+            fh.close();
+            this.semaforoExclusaoMutua.release();
+
+        } catch (InterruptedException ex) {
+        } catch (IOException | SecurityException ex) {
+            Logger.getLogger(MonitorElevador.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Escreve para um ficheiro de Log (uso das portas).
+     * .<p>
+     * Este tipos de ficheiros é mesmo do Java e escreverá logo de uma maneira
+     * predefinida.</p>
+     *
+     * @param thread passa para o ficheiro a Thread que criou o log
+     * @param portas
+     */
+    public synchronized void writeLog(
+            Thread thread, EstadosPortas portas) {
+        Logger logger = Logger.getLogger("ElevatorLog");
+        FileHandler fh;
+
+        try {
+            fh = new FileHandler("ElevatorLog.log", true);
+            logger.addHandler(fh);
+            SimpleFormatter simpleFormatter = new SimpleFormatter();
+            fh.setFormatter(simpleFormatter);
+
+            this.semaforoExclusaoMutua.acquire();
+            logger.log(Level.INFO, "- Utilização das Portas - {0}, "
+                    + "Estado das Portas: [{1}]",
+                    new Object[]{thread.getName(), portas.toString()});
+            fh.close();
+            this.semaforoExclusaoMutua.release();
+
         } catch (InterruptedException ex) {
         } catch (IOException | SecurityException ex) {
             Logger.getLogger(MonitorElevador.class.getName()).log(Level.SEVERE, null, ex);
@@ -582,17 +663,13 @@ public class MonitorElevador {
     /**
      * Lê o ficheiro de configurações, procura pelas propriedades definidas,
      * nomeadamente a carga e o número de pisos, e coloca nas variáveis.
+     *
+     * @throws java.io.IOException exceção resultante da inexistência do
+     * ficheiro dentro do diretório "root" (neste caso /src/). (NOTA: exceção
+     * vai ser tratada imediatamente antes da criação da instância)
      */
     private void setDefinitions() throws IOException {
 
-        /*
-        Alterei a forma como as exceptions são tratadas, não acho que a forma como
-        estava fosse a melhor. Assim evita logo no inicio que código corra se não
-        conseguir ler o ficheiro!
-        
-        Eu parti do principio que este método já está finalizado! Se apaguei alguma
-        coisa que não devia, sorry. podes sempre ir ver os commits no git.
-         */
         File deffile = new File("definicoes.properties");
 
         Properties p = new Properties();

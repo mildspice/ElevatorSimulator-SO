@@ -22,15 +22,15 @@ import tools.MonitorElevador;
  */
 public class MainControloElevador implements Runnable {
 
+    private JFrame janelaPrincipal;
     //Objeto partilhado com as flags, 'waits' e 'notifies', ...
     protected MonitorElevador monitor;
-    private JFrame janelaPrincipal;
-    //threads
+    //instâncias das threads
     protected Motor motor;
     protected Portas portas;
     protected Botoneira botoneira;
 
-    //semaforos relacionados às threads
+    //semaforos relacionados ao funcionamento das threads
     protected Semaphore semaforoMotor;
     protected Semaphore semaforoPortas;
     protected Semaphore semaforoBotoneira;
@@ -67,7 +67,7 @@ public class MainControloElevador implements Runnable {
      */
     private int getInputCarga() {
         String input = JOptionPane.showInputDialog(
-                "Peso presente no elevador atualmente: ", "320");
+                "Peso presente no elevador atualmente: ", "0");
         try {
             return Integer.parseUnsignedInt(input);
         } catch (NumberFormatException exc) {
@@ -81,29 +81,23 @@ public class MainControloElevador implements Runnable {
     /**
      * <b>Método responsável pelo funcionamento da thread.</b>
      * <p>
-     * NOTAS (estão espalhados ao longo do código vários comentários
-     * importantes, no entanto alguns vão ser colocados aqui por conveniência do
-     * javadoc.):
+     * DEVELOPER NOTE: estão espalhados ao longo do código vários comentários
+     * importantes, no entanto alguns vão ser colocados aqui por conveniência.
      * </p>
      * <p>
      * - as threads estão colocadas como estando sempre ativas, assim não é
      * preciso estar sempre a, por exemplo, criar threads diferentes em cada
-     * utilização do motor. Para parar as threds basta fazer
+     * utilização do motor. Para parar as threads basta fazer
      * 'instância_thread.interrupt()' uma vez que no 'run' está um ciclo
-     * while(!Thread.interrupted())'.
+     * 'while(!Thread.interrupted())'. (isto é óbvio mas ajuda estar
+     * documentado)
      * </p>
      */
     @Override
     public void run() {
         try {
             this.janelaPrincipal = monitor.criarJanelaPrincipal();
-            /**
-             * as threads estão colocadas como estando sempre ativas, assim não
-             * é preciso estar sempre a, por exemplo, criar threads diferentes
-             * em cada utilização do motor. Para parar as threds basta fazer
-             * 'instância_thread.interrupt()' uma vez que no 'run' está um ciclo
-             * while(!Thread.interrupted())'
-             */
+
             motor.start();
             portas.start();
             botoneira.start();
@@ -148,7 +142,7 @@ public class MainControloElevador implements Runnable {
                                 monitor.setDirecaoMotor(EstadosMotor.CIMA);
                             }
 
-                            //questiona sobre a carga atual e verifica que pode prosseguir
+                            //questiona sobre a carga atual e verifica se pode prosseguir
                             while (!monitor.setCargaAtual(getInputCarga())) {
                                 monitor.printWarning("Peso dentro do elevador "
                                         + "acima do limite!!", true);
@@ -168,14 +162,16 @@ public class MainControloElevador implements Runnable {
                             workingElevator.join();
                             //esperar pelo motor
                             monitor.espera();
+                            Thread.sleep(monitor.MOVEMENT_WAITING_TIME / 2);
                             //sinalizar as portas novamente
                             semaforoPortas.release();
+                            Thread.sleep(monitor.MOVEMENT_WAITING_TIME);
                         }
                     }
                 }
 
             }
-            /*
+            /* NOTA:
             A thread só acaba quando for interrompida.
             No entanto, o código tanto pode finalizar na catch clause como depois
             do ciclo while (aqui), dependendo do estado "funcional" da thread quando
@@ -218,9 +214,6 @@ public class MainControloElevador implements Runnable {
     public static void main(String[] args) {
         //semáforo de gestão de áreas críticas (como a escrita dos logs)
         Semaphore exclusaoMutua = new Semaphore(1);
-        /**
-         * semaforos relacionados ao funcionamento dos sub-modulos
-         */
         //semáforo para sinalização do funcionamento do motor 
         //( release em [Thread_ControloElevador] )
         Semaphore semaforoMotor = new Semaphore(0);

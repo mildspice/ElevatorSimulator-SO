@@ -1,20 +1,138 @@
-jan 02, 2019 5:40:10 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.009
-jan 02, 2019 5:52:55 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.011
-jan 02, 2019 5:53:17 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 4Peso transportado: 320 Tempo de trabalho: 7.005
-jan 02, 2019 5:54:59 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 4 Piso Final: 1Peso transportado: 320 Tempo de trabalho: 101.385
-jan 02, 2019 5:55:14 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 13.008
-jan 02, 2019 5:55:22 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 2Peso transportado: 320 Tempo de trabalho: 7.004
-jan 02, 2019 5:55:46 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 2 Piso Final: 3Peso transportado: 320 Tempo de trabalho: 7.003
-jan 02, 2019 6:31:20 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 1 Piso Final: 3 Peso transportado: 0 Tempo de trabalho: 13.011
-jan 02, 2019 6:31:28 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 3 Piso Final: 4 Peso transportado: 0 Tempo de trabalho: 7.006
-jan 02, 2019 6:31:48 PM tools.MonitorElevador writeLog
-INFO: [Thread_RunningElevator] Piso Inicial: 4 Piso Final: 1 Peso transportado: 0 Tempo de trabalho: 19.009
+jan 04, 2019 9:35:15 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:35:27 PM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [320], Tempo de trabalho: [13.010]
+jan 04, 2019 9:35:27 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:35:34 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:35:46 PM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [1], Direcao: [STOPPED], Peso transportado: [25], Tempo de trabalho: [13.007]
+jan 04, 2019 9:35:46 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:36:03 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:36:09 PM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [2], Direcao: [CIMA], Peso transportado: [25], Tempo de trabalho: [7.005]
+jan 04, 2019 9:36:09 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:36:14 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 04, 2019 9:36:21 PM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [2], Piso Final: [1], Direcao: [STOPPED], Peso transportado: [23], Tempo de trabalho: [7.004]
+jan 04, 2019 9:36:21 PM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:11:18 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:11:30 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [320], Tempo de trabalho: [13.013]
+jan 05, 2019 1:11:30 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:11:53 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:11:59 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [2], Direcao: [BAIXO], Peso transportado: [23], Tempo de trabalho: [7.003]
+jan 05, 2019 1:11:59 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:16 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:22 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [2], Piso Final: [3], Direcao: [CIMA], Peso transportado: [56], Tempo de trabalho: [7.004]
+jan 05, 2019 1:12:22 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:28 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:34 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [2], Direcao: [STOPPED], Peso transportado: [320], Tempo de trabalho: [7.004]
+jan 05, 2019 1:12:34 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:39 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:45 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [2], Piso Final: [1], Direcao: [STOPPED], Peso transportado: [23], Tempo de trabalho: [7.005]
+jan 05, 2019 1:12:45 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:12:50 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:25:40 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:25:58 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [4], Direcao: [CIMA], Peso transportado: [59], Tempo de trabalho: [19.017]
+jan 05, 2019 1:26:11 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [4], Piso Final: [3], Direcao: [STOPPED], Peso transportado: [56], Tempo de trabalho: [7.004]
+jan 05, 2019 1:26:38 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [1], Direcao: [BAIXO], Peso transportado: [0], Tempo de trabalho: [13.007]
+jan 05, 2019 1:26:46 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:30:32 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:30:44 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [56], Tempo de trabalho: [13.013]
+jan 05, 2019 1:30:59 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [2], Direcao: [STOPPED], Peso transportado: [45], Tempo de trabalho: [7.003]
+jan 05, 2019 1:33:15 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:33:27 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [0], Tempo de trabalho: [13.011]
+jan 05, 2019 1:33:33 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [4], Direcao: [CIMA], Peso transportado: [0], Tempo de trabalho: [6.005]
+jan 05, 2019 1:33:52 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [4], Piso Final: [2], Direcao: [BAIXO], Peso transportado: [0], Tempo de trabalho: [13.006]
+jan 05, 2019 1:37:05 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:37:17 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [0], Tempo de trabalho: [13.010]
+jan 05, 2019 1:37:18 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:37:24 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:37:30 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [4], Direcao: [CIMA], Peso transportado: [0], Tempo de trabalho: [7.005]
+jan 05, 2019 1:37:31 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:37:36 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:37:54 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [4], Piso Final: [1], Direcao: [BAIXO], Peso transportado: [0], Tempo de trabalho: [19.014]
+jan 05, 2019 1:37:55 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:38:10 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:38:17 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:38:22 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:40:58 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:41:03 AM tools.MonitorElevador writeLog
+INFO: - Paragem do elevador - [Thread_MotorElevador], Duração da paragem: [473]
+jan 05, 2019 1:41:09 AM tools.MonitorElevador writeLog
+INFO: - Paragem do elevador - [Thread_MotorElevador], Duração da paragem: [2.904]
+jan 05, 2019 1:41:13 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [89], Tempo de trabalho: [15.944]
+jan 05, 2019 1:41:14 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:41:22 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:41:26 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:41:29 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:41:31 AM tools.MonitorElevador writeLog
+INFO: - Paragem do elevador - [Thread_MotorElevador], Duração da paragem: [5.578]
+jan 05, 2019 1:41:40 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [3], Piso Final: [1], Direcao: [BAIXO], Peso transportado: [156], Tempo de trabalho: [18.503]
+jan 05, 2019 1:41:40 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:43:28 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:43:34 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
+jan 05, 2019 1:44:12 AM tools.MonitorElevador writeLog
+INFO: - Paragem do elevador - [Thread_MotorElevador], Duração da paragem: [40.437]
+jan 05, 2019 1:44:12 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [FECHADO]
+jan 05, 2019 1:44:21 AM tools.MonitorElevador writeLog
+INFO: - Deslocação do Elevador - [Thread_RunningElevator], Piso Inicial: [1], Piso Final: [3], Direcao: [CIMA], Peso transportado: [43], Tempo de trabalho: [53.581]
+jan 05, 2019 1:44:21 AM tools.MonitorElevador writeLog
+INFO: - Utilização das Portas - [Thread_PortasElevador], Estado das Portas: [ABERTO]
