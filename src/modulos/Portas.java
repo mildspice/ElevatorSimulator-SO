@@ -74,7 +74,13 @@ public class Portas extends Thread {
                         || monitor.isBotaoPortasClicked()
                         && monitor.getBotaoPortas().equals(EstadosPortas.ABERTO)) {
                     monitor.setEstadoPortas(EstadosPortas.ABERTO);
-
+					
+					//faltava adicionar antes da entrega!!!
+					if (monitor.isBotaoPortasClicked() 
+						&& monitor.getBotaoPortas().equals(EstadosPortas.FECHADO)) {
+							monitor.setEstadoPortas(EstadosPortas.FECHADO);
+					} 
+					
                     //quando o elevador foi parado manualmente e o utilizador
                     //decide abrir as portas
                     if (!monitor.isFloorReached()) {
